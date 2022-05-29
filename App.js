@@ -9,7 +9,7 @@ import Header from './app/components/Header';
 import DoneScreen from './app/screens/DoneScreen';
 import {Dimensions, StatusBar, StyleSheet, View, ToastAndroid} from "react-native";
 import PagerView from 'react-native-pager-view';
-import AnimatedSplash from "react-native-animated-splash-screen";
+import RNBootSplash from "react-native-bootsplash";
 
 export default function App() {
   //Variablen und Arrays
@@ -32,10 +32,7 @@ export default function App() {
   const [pageTitle, setPageTitle] = useState('');
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [alertModalVisible, setAlertModalVisible] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
-
-  const width = Dimensions.get('window').width;
 
   //Handler für alle Components
 
@@ -101,8 +98,13 @@ export default function App() {
 
 
   useEffect(() => {
-    getData();
-    setTimeout(() => setLoaded(true), 500);
+    const init = async () => {
+      getData();
+    }
+    init().finally(async () => {
+      await RNBootSplash.hide({fade: true});
+    });
+
   }, []);
 
   useEffect(() => {
@@ -147,14 +149,6 @@ export default function App() {
   //App rendern
 
     return (
-        <AnimatedSplash
-            translucent={true}
-            isLoaded={loaded}
-            logoImage={require("./assets/ToDo-Logo_2.png")}
-            backgroundColor={lightColors.foreground}
-            logoHeight={250}
-            logoWidth={250}
-        >
       <View style={darkMode ? (amoled ? styles.containerAmoledMode : styles.containerDarkMode) : styles.containerLightMode}>
         <SettingsModal
           darkMode={darkMode}
@@ -204,7 +198,6 @@ export default function App() {
         </PagerView>
 
       </View>
-        </AnimatedSplash>
     );
 
 
