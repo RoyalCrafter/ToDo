@@ -1,9 +1,21 @@
 import React from "react";
 import {StyleSheet, Text} from "react-native";
 import Modal from "react-native-modal";
-import {darkColors, lightColors} from "../../colorThemes";
+import {darkColors, lightColors} from "../constants/ColorThemes";
+import {de, en, fr} from "../constants/Languages";
 
-export default function AlertModal({modalVisible, darkMode, setModalVisible, amoled, onModalShow}) {
+export default function AlertModal({modalVisible, darkMode, setModalVisible, amoled, onModalShow, language}) {
+
+  const getWords = () => {
+    if(language === 'de'){
+      return de;
+    } else if(language === 'fr'){
+      return fr;
+    } else{
+      return en;
+    }
+  }
+
   return (
     <Modal
       isVisible={modalVisible}
@@ -16,11 +28,9 @@ export default function AlertModal({modalVisible, darkMode, setModalVisible, amo
       style={darkMode ? (amoled ? styles.alertModalAmoled : styles.alertModalDark) : styles.alertModalLight}
       onModalShow={() => onModalShow}
       hideModalContentWhileAnimating={true}
-      useNativeDriver={false}
-      useNativeDriverForBackdrop={false}
       backdropTransitionOutTiming={0}
       children={
-        <Text style={darkMode ? styles.fontDark : styles.fontLight}>Das ToDo muss länger als 3 Zeichen sein.</Text>
+        <Text style={darkMode ? styles.fontDark : styles.fontLight}>{getWords().button}</Text>
       }
     />
   );

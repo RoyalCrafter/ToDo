@@ -1,17 +1,27 @@
 import React from "react";
 import {StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
-import {darkColors, lightColors} from "../colorThemes";
+import {darkColors, lightColors} from "./constants/ColorThemes";
+import {de, en, fr} from "./constants/Languages";
 
 
-export default function AddTodo({submitHandler, darkMode, text, changeHandler}) {
+export default function AddTodo({submitHandler, darkMode, text, changeHandler, language}) {
 
+    const getWords = () => {
+        if(language === 'de'){
+            return de;
+        } else if(language === 'fr'){
+            return fr;
+        } else{
+            return en;
+        }
+    }
 
     if (darkMode) {
     return (
         <View style={styles.view}>
             <TextInput
                 style={styles.inputFieldDarkMode}
-                placeholder={'Neues ToDo...'}
+                placeholder={getWords().placeholder}
                 //placeholderTextColor={'#ddd'}
                 placeholderTextColor={darkColors.placeHolderText}
                 value={text}
@@ -19,7 +29,7 @@ export default function AddTodo({submitHandler, darkMode, text, changeHandler}) 
             />
             <TouchableOpacity onPress={() => submitHandler(text)} style={styles.button}>
                 <View>
-                    <Text style={styles.buttonText}>ToDo hinzufügen</Text>
+                    <Text style={styles.buttonText}>{getWords().button}</Text>
                 </View>
             </TouchableOpacity>
         </View>
@@ -29,7 +39,7 @@ export default function AddTodo({submitHandler, darkMode, text, changeHandler}) 
             <View >
                 <TextInput
                     style={styles.inputFieldLightMode}
-                    placeholder={'Neues ToDo...'}
+                    placeholder={getWords().placeholder}
                     //placeholderTextColor={'#ddd'}
                     placeholderTextColor={lightColors.placeHolderText}
                     value={text}
@@ -37,7 +47,7 @@ export default function AddTodo({submitHandler, darkMode, text, changeHandler}) 
                 />
                 <TouchableOpacity onPress={() => submitHandler(text)} style={styles.button}>
                     <View>
-                        <Text style={styles.buttonText}>ToDo hinzufügen</Text>
+                        <Text style={styles.buttonText}>{getWords().button}</Text>
                     </View>
                 </TouchableOpacity>
             </View>

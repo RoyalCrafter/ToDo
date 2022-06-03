@@ -1,13 +1,13 @@
 
 // noinspection JSUnresolvedFunction
 
-import React from "react";
+import React, {useState} from "react";
 import {FlatList, StyleSheet, View} from "react-native";
 import AddTodo from "../components/AddTodo";
 import ToDoItem from "../components/items/ToDoItem";
 
 
-export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, removeTodo}){
+export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, removeTodo, language, showCurrentToDo}){
     return(
         <View style={styles.view}>
             <View style={styles.content}>
@@ -17,6 +17,7 @@ export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, 
                     submitHandler={() => addTodo(text)}
                     darkMode={darkMode}
                     changeHandler={(text) => changeText(text)}
+                    language={language}
                 />
                 <View style={styles.list}>
                     <FlatList
@@ -28,6 +29,7 @@ export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, 
                                 item={item}
                                 pressHandler={() => removeTodo(item.key, item.text)}
                                 darkMode={darkMode}
+                                showCurrentToDo={showCurrentToDo}
                             />
                         )}
                         keyExtractor={item => item.key}

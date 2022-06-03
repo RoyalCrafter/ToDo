@@ -1,37 +1,37 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import {MMKV} from 'react-native-mmkv';
-import {darkColors, lightColors} from './app/colorThemes';
-import ToDoScreen from './app/screens/ToDoScreen';
-import SettingsModal from "./app/components/modals/SettingsModal";
+import {darkColors, lightColors} from './app/components/constants/ColorThemes';
 import AlertModal from "./app/components/modals/AlertModal";
 import Header from './app/components/Header';
-import DoneScreen from './app/screens/DoneScreen';
-import {Dimensions, StatusBar, StyleSheet, View, ToastAndroid} from "react-native";
-import PagerView from 'react-native-pager-view';
+import {Dimensions, StatusBar, StyleSheet, View, ToastAndroid, BackHandler} from "react-native";
 import RNBootSplash from "react-native-bootsplash";
+import {de, en} from "./app/components/constants/Languages";
+import ToDoApp from "./app/components/ToDoApp";
+import Settings from "./app/screens/Settings";
+import SystemNavigationBar from 'react-native-system-navigation-bar';
+import useColorScheme from "react-native/Libraries/Utilities/useColorScheme";
+import ToDoOverview from "./app/screens/ToDoOverview";
+
+
+const STYLES = ['default', 'dark-content', 'light-content'];
 
 export default function App() {
   //Variablen und Arrays
 
-  const [todos, setTodos] = useState([
-    {key: 1, text: 'Hausaufgaben'},
-    {key: 2, text: 'Gitarre spielen'},
-    {key: 3, text: 'App programmieren'},
-    {key: 4, text: 'Sport machen'},
-  ]);
-  const [done, setDone] = useState([
-    {key: 1, text: 'Kaffee kaufen'},
-    {key: 2, text: 'Gitarre spielen'},
-    {key: 3, text: 'App programmieren'},
-    {key: 4, text: 'Sport machen'},
-  ]);
+  const [todos, setTodos] = useState([]);
+  const [done, setDone] = useState([]);
   const [text, setText] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(useColorScheme() !== 'light');
   const [amoled, setAmoled] = useState(false);
-  const [pageTitle, setPageTitle] = useState('');
-  const [settingsModalVisible, setSettingsModalVisible] = useState(false);
+  const [page, setPage] = useState('');
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const [alertModalVisible, setAlertModalVisible] = useState(false);
+  const [language, setLanguage] = useState('de');
+  const [statusBarStyle, setStatusBarStyle] = useState(STYLES[0]);
+  const [todoOverviewVisible, setTodoOverviewVisible] = useState(false);
+  const [currentToDo, setCurrentToDo] = useState('');
+  const [currentToDoKey, setCurrentToDoKey] = useState(0);
 
 
   //Handler für alle Components
@@ -45,31 +45,58 @@ export default function App() {
     console.log('amoled');
   }
 
-  const changeSettingsModalVisible = () => {
-    setSettingsModalVisible(prevSettingsModalVisible => !prevSettingsModalVisible);
+  const changeSettingsVisible = () => {
+    setSettingsVisible(prevSettingsVisible => !prevSettingsVisible);
   };
 
+  const changeLanguage = val => {
+    setLanguage(val);
+  }
+
+  const showCurrentToDo = (name, key) => {
+    if(name.length > 20){
+      setCurrentToDo(name.substr(0, 20) + '...');
+    } else {
+      setCurrentToDo(name);
+    }
+    setCurrentToDoKey(key);
+    setTodoOverviewVisible(true);
+  }
 
   const changePage = val => {
-    setPageTitle(val);
+    setPage(val);
   };
 
   const changeText = val => {
     setText(val);
   };
 
+  const getWords = () => {
+    if(language === 'de'){
+      return de;
+    } else{
+      return en;
+    }
+  }
+
+
   //Todos und Done verwalten
 
+  const changeName = (key, newText) => {
+
+  };
+
   const addTodo = text => {
-    if (text.length > 3) {
+    if (text.length >= 3) {
+
       setTodos(prevTodos => {
-        return [{key: Math.random(), text: text}, ...prevTodos];
+        return [{key: new Date().getTime(), text: text}, ...prevTodos];
       });
       changeText('');
     } else {
       /*setAlertModalVisible(true);
       setTimeout(() =>setAlertModalVisible(false), 700);*/
-      ToastAndroid.show("Das ToDo muss länger als 3 Zeichen sein.", 700);
+      ToastAndroid.show(getWords().alert, 700);
     }
   };
 
@@ -80,9 +107,19 @@ export default function App() {
     });
   };
 
+
+  const deleteTodo = (key) => {
+    setTodoOverviewVisible(false);
+    setTodos(prevTodos => {
+      return prevTodos.filter(todos => todos.key !== key);
+    })
+
+  };
+
+
   const addDone = text => {
     setDone(prevDone => {
-      return [{key: Math.random(), text: text}, ...prevDone];
+      return [{key: new Date().getTime(), text: text}, ...prevDone];
     });
   };
 
@@ -103,24 +140,32 @@ export default function App() {
     }
     init().finally(async () => {
       await RNBootSplash.hide({fade: true});
-    });
-
+    })
   }, []);
 
   useEffect(() => {
     saveData();
-  }, [darkMode, amoled, done, todos])
+  }, [darkMode, amoled, done, todos, language]);
+
+  useEffect(() => {
+    SystemNavigationBar.setNavigationColor(darkMode ? (amoled ? darkColors.amoled : darkColors.background) : lightColors.background);
+    setStatusBarStyle('dark-content');
+    setTimeout(() => setStatusBarStyle('light-content'), 1);
+  }, [darkMode, amoled]);
+
 
   const todosKey = '@todos';
   const darkModeKey = '@darkMode';
   const doneKey = '@done';
   const amoledKey = '@amoled';
+  const languageKey = '@language';
 
   const saveData = () => {
     storage.set(todosKey, JSON.stringify(todos));
     storage.set(doneKey, JSON.stringify(done));
     storage.set(darkModeKey, JSON.stringify(darkMode));
     storage.set(amoledKey, JSON.stringify(amoled));
+    storage.set(languageKey, JSON.stringify(language));
   };
 
   const getData = () => {
@@ -129,6 +174,7 @@ export default function App() {
       const darkModeValue = storage.getString(darkModeKey);
       const doneValue = storage.getString(doneKey);
       const amoledValue = storage.getString(amoledKey)
+      const languageValue = storage.getString(languageKey)
       if (todosValue !== null) {
         setTodos(JSON.parse(todosValue));
       }
@@ -141,6 +187,9 @@ export default function App() {
       if(amoledValue !== null){
         setAmoled(JSON.parse(amoledValue));
       }
+      if(languageValue !== null){
+        setLanguage(JSON.parse(languageValue));
+      }
     } catch(e){
       console.log('Data access error. Maybe it´s the first time the app is open on this device.');
     }
@@ -150,54 +199,83 @@ export default function App() {
 
     return (
       <View style={darkMode ? (amoled ? styles.containerAmoledMode : styles.containerDarkMode) : styles.containerLightMode}>
-        <SettingsModal
-          darkMode={darkMode}
-          amoled={amoled}
-          changePage={changePage}
-          changeModalVisible={changeSettingsModalVisible}
-          modalVisible={settingsModalVisible}
-        />
         <AlertModal
           darkMode={darkMode}
           amoled={amoled}
           modalVisible={alertModalVisible}
           setModalVisible={setAlertModalVisible}
           onModalShow={() => setTimeout(() => setAlertModalVisible(false), 500)}
+          language={language}
         />
         <StatusBar
-          translucent
-          backgroundColor={darkMode ? (amoled ? darkColors.amoled : darkColors.header) : lightColors.header}
+            translucent
+            backgroundColor={darkMode ? (amoled ? darkColors.amoled : darkColors.header) : lightColors.header}
+            barStyle={statusBarStyle}
         />
         <Header
-          style={styles.header}
-          changeMode={changeMode}
-          showSettings={() => (console.log('')) /*TODO: Funktion zum Settings anzeigen einfügen*/}
-          toggleAmoled={toggleAmoled}
-          darkMode={darkMode}
-          amoled={amoled}
-          pageTitle={pageTitle}
+            style={{flex: 1}}
+            changeMode={changeMode}
+            showSettings={changeSettingsVisible}
+            settingsVisible={settingsVisible}
+            toggleAmoled={toggleAmoled}
+            darkMode={darkMode}
+            amoled={amoled}
+            page={page}
+            language={language}
+            todoOverviewVisible={todoOverviewVisible}
+            todoName={currentToDo}
+            setTodoOverviewVisible={setTodoOverviewVisible}
         />
-        <PagerView initialPage={0} style={{flex: 1}} onPageSelected={() => changePage(pageTitle === 'ToDo' ? 'Erledigt' : 'ToDo')}>
-          <View key={0}>
-            <ToDoScreen
-                addTodo={addTodo}
-                changeText={changeText}
-                removeTodo={removeTodo}
+        {settingsVisible ?
+            <Settings
+                changeSettingsVisible={changeSettingsVisible}
                 darkMode={darkMode}
-                todos={todos}
-                text={text}
+                amoled={amoled}
+                changeLanguage={changeLanguage}
+                language={language}
             />
-          </View>
-          <View key={1}>
-            <DoneScreen
+            :
+            todoOverviewVisible ?
+                  <ToDoOverview
+                      darkMode={darkMode}
+                      deleteToDo={deleteTodo}
+                      name={currentToDo}
+                      key={currentToDoKey}
+                  />
+                  :
+                  <View/>
+
+        }
+
+            <ToDoApp
+                addTodo={addTodo}
+                todos={todos}
+                removeTodo={removeTodo}
+                done={done}
+                addDone={addDone}
                 removeDone={removeDone}
                 darkMode={darkMode}
-                done={done}
+                amoled={amoled}
+                language={language}
+                page={page}
+                changeText={changeText}
+                changePage={changePage}
+                text={text}
+                settingsVisible={settingsVisible}
+                todoOverviewVisible={todoOverviewVisible}
+                showCurrentToDo={showCurrentToDo}
             />
-          </View>
-        </PagerView>
+
 
       </View>
+  /*<SettingsModal
+      darkMode={darkMode}
+      amoled={amoled}
+      changeLanguage={changeLanguage}
+      changeModalVisible={changeSettingsModalVisible}
+      modalVisible={settingsModalVisible}
+      style={{flex: 1}}
+  />*/
     );
 
 
@@ -226,7 +304,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: darkColors.amoled,
   },
-  header: {
-    flex: 1,
-  },
+  modeChangeScreen:{
+    position: 'absolute',
+    flex: 5,
+    backgroundColor: lightColors.foreground,
+  }
 });

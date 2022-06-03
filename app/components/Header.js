@@ -1,28 +1,37 @@
 
-// noinspection JSUnresolvedFunction
-
 import React from "react";
 import {StyleSheet, Text, TouchableWithoutFeedback, View} from 'react-native';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Ionicons from "react-native-vector-icons/Ionicons"
 import Feather from "react-native-vector-icons/Feather";
-import AntDesign from "react-native-vector-icons/AntDesign";
-import {darkColors, lightColors} from "../colorThemes";
+import {darkColors, lightColors} from "./constants/ColorThemes";
+import {de, en, fr} from "./constants/Languages";
 
 
-export default function Header({changeMode, showSettings, toggleAmoled, darkMode, amoled, pageTitle}) {
+export default function Header({changeMode, showSettings, toggleAmoled, darkMode, amoled, page, language, settingsVisible, todoOverviewVisible, todoName, setTodoOverviewVisible}) {
 
+
+    const getWords = () => {
+        if(language === 'de'){
+            return de;
+        } else if(language === 'fr'){
+            return fr;
+        } else{
+            return en;
+        }
+    }
 
         return(
             <View style={darkMode ? (amoled ? darkStyles.headerAmoled : darkStyles.header) : lightStyles.header}>
-                <Text style={darkMode ? darkStyles.title : lightStyles.title}>{pageTitle}</Text>
+                <Text style={darkMode ? darkStyles.title : lightStyles.title}>{settingsVisible ? getWords().settings : todoOverviewVisible ? todoName : (page === 'todo' ? getWords().todo : getWords().done)}</Text>
                 <DarkModeToggle changeMode={() => changeMode()} darkMode={darkMode} toggleAmoled={toggleAmoled}/>
-                <TouchableWithoutFeedback onPress={() => showSettings()}>
-                    <Ionicons name={'settings-outline'} size={28}  color={darkMode ? darkColors.icon : lightColors.icon} style={darkMode ? darkStyles.menu : lightStyles.menu}/>
+                <TouchableWithoutFeedback onPress={todoOverviewVisible ? () => setTodoOverviewVisible(false) : () => showSettings()}>
+                    <Ionicons name={settingsVisible || todoOverviewVisible ? 'chevron-back' : 'settings-outline'} size={28}  color={darkMode ? darkColors.icon : lightColors.icon} style={darkMode ? darkStyles.menu : lightStyles.menu}/>
                 </TouchableWithoutFeedback>
             </View>
         );
 }
+
 
 
 function DarkModeToggle({darkMode, changeMode, toggleAmoled}){

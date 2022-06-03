@@ -1,7 +1,7 @@
 import React from "react";
 import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {darkColors, lightColors} from "../../colorThemes";
+import {darkColors, lightColors} from "../constants/ColorThemes";
 
 export default function DoneItem({item, pressHandler, darkMode}){
         return (

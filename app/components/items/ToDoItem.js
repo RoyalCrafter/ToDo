@@ -1,16 +1,18 @@
 import React from "react";
 import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {darkColors, lightColors} from "../../colorThemes";
+import {darkColors, lightColors} from "../constants/ColorThemes";
 import Octicons from "react-native-vector-icons/Octicons";
 
-export default function ToDoItem({item, pressHandler, darkMode}){
+export default function ToDoItem({item, pressHandler, darkMode, showCurrentToDo}){
         return (
+            <TouchableOpacity onPress={() => showCurrentToDo(item.text, item.key)}>
             <View style={darkMode ? styles.itemDarkMode : styles.itemLightMode}>
                 <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.text}</Text>
                 <TouchableOpacity onPress={() => pressHandler(item.key, item.text)}>
                     <Octicons style={styles.delete} name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
                 </TouchableOpacity>
             </View>
+            </TouchableOpacity>
         );
 }
 
@@ -37,14 +39,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     textLightMode:{
+        color: lightColors.text,
         flex: 9,
         paddingLeft: 6,
-        color: lightColors.text,
+        padding: 9,
     },
     textDarkMode:{
+        color: darkColors.text,
         flex: 9,
         paddingLeft: 6,
-        color: darkColors.text,
+        padding: 9,
     },
     delete:{
         flex: 1,

@@ -10,7 +10,7 @@ ToDo is a ToDo-App build with React Native, but at the moment, it only works for
 - **Done Tasks**
 
 <p>
-  <img height="300" src="https://raw.githubusercontent.com/RoyalCrafter/ToDo/ToDo-1.1.3/ToDo-1.1.3-Android.mp4?token=GHSAT0AAAAAABTEY4WVBCHWHZ3WVZVHMPD2YUTSP7A" alt="Android Demo"></img>
+  <img height="700" src="https://raw.githubusercontent.com/RoyalCrafter/ToDo/ToDo-1.1.3/ToDo-1.1.3-Android.gif?token=GHSAT0AAAAAABTEY4WUDBY3E6CEY6EKXBD2YUTS32Q" alt="Android Demo"></img>
 </p>
 
 ## Coming Feature
