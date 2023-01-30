@@ -2,16 +2,24 @@ import React from "react";
 import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {darkColors, lightColors} from "../constants/ColorThemes";
+import {getPriorityColor} from "../handler/ItemHandler";
 
-export default function DoneItem({item, pressHandler, darkMode}){
-        return (
+export default function DoneItem({item, pressHandler, darkMode, showCurrentItem}){
+
+
+    return (
+        <TouchableOpacity onPress={() => showCurrentItem(item, false)}>
             <View style={darkMode ? styles.itemDarkMode : styles.itemLightMode}>
+                <View style={styles.priorityView}>
+                    <View style={[styles.priority, {backgroundColor: getPriorityColor(item)}]}/>
+                </View>
                 <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.text}</Text>
-                <TouchableOpacity onPress={() => pressHandler(item.key, item.text)}>
-                    <MaterialCommunityIcons style={styles.delete} name="delete-forever" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                <TouchableOpacity style={styles.touchable} onPress={() => pressHandler(item.key, item.text)}>
+                    <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
                 </TouchableOpacity>
             </View>
-        );
+        </TouchableOpacity>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -24,6 +32,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
     },
     itemDarkMode:{
         padding: 10,
@@ -34,6 +43,18 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+    },
+    priorityView:{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    priority:{
+        margin: 2,
+        flex: 1,
+        width: 6,
+        borderRadius: 10,
     },
     textLightMode:{
         flex: 9,
@@ -45,8 +66,11 @@ const styles = StyleSheet.create({
         paddingLeft: 6,
         color: darkColors.text,
     },
-    delete:{
-        flex: 1,
+    touchable:{
         padding: 6,
-    }
+        flex: 1,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+    },
 });

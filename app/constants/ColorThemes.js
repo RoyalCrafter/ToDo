@@ -1,6 +1,6 @@
 import React from "react";
-// Light theme colors
 
+// Light theme colors
 export const lightColors = {
     background: '#FFFFFF',
     icon: '#1A1A1A',
@@ -12,6 +12,7 @@ export const lightColors = {
     button: '#00AEFF',
     header: '#00AEFF',
     shadow: '#000',
+    modal: '#f8f8f8',
 };
 
 // Dark theme colors
@@ -25,7 +26,7 @@ export const darkColors = {
     foreground: '#00AEFF',
     button: '#00AEFF',
     header: '#1A1A1A',
-    shadow: '#3f3f3f',
+    shadow: '#00AEFF',
     modal: '#252525',
     amoled: '#000',
 };

@@ -1,94 +1,171 @@
 
-import React, {useState} from "react";
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import {darkColors, lightColors} from "../components/constants/ColorThemes";
+import React, {useRef} from "react";
+import {
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from "react-native";
+import {darkColors, lightColors} from "../constants/ColorThemes";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import {de, en, fr} from "../components/constants/Languages";
-import Modal from "react-native-modal";
-import ToDoItem from "../components/items/ToDoItem";
-import Octicons from "react-native-vector-icons/Octicons";
+import Clipboard from '@react-native-clipboard/clipboard';
+import PagerView from "react-native-pager-view";
+import {getWords} from "../handler/DataHandler";
+import {addDone, addExistingTodo} from "../handler/ItemHandler";
 
-export default function Settings({changeSettingsVisible, darkMode, amoled, changeLanguage, language}) {
-    const [languageSettingsVisible, setLanguageSettingsVisible] = useState(false);
+export default function Settings({darkMode, changeLanguage, language, todos, done, setTodos, setDone}) {
     const languages = [
         {key: 'de', name: 'Deutsch'},
         {key: 'en', name: 'English'},
         {key: 'fr', name: 'Français'}
     ]
+    const pagerRef = useRef(0);
 
-    const changeLanguageSettingsVisible = () => {
-        setLanguageSettingsVisible(prevState => !prevState);
+
+    const closeMenu = () => {
+        pagerRef.current.setPageWithoutAnimation(0);
+    }
+    const openLanguageMenu = () => {
+        pagerRef.current.setPageWithoutAnimation(1);
+    }
+    const openDataMenu = () => {
+        pagerRef.current.setPageWithoutAnimation(2);
     }
 
-    const getWords = () => {
-        if(language === 'de'){
-            return de;
-        } else if(language === 'fr'){
-            return fr;
-        } else{
-            return en;
+
+    const getClipboardContent = () => {
+        let string;
+        const getString = async () => {
+            string = await Clipboard.getString();
+            console.log(string)
         }
+        getString().finally(() => {
+            const content = JSON.parse(string);
+            console.log(content)
+            console.log(content[0])
+            console.log(content[1])
+            try {
+                content[0].forEach((item) => {
+                    addExistingTodo(item, setTodos);
+                });
+                content[1].forEach((item) => {
+                    addDone(item, setDone);
+                });
+            } catch (e) {
+                console.log('');
+            }
+        })
     }
+
 
     return (
-        <View style={styles.view}>
-                <Modal
-                    isVisible={languageSettingsVisible}
-                    style={styles.settingsModal}
-                    children={
-                    <View>
-                        <Text style={styles.title}>{getWords().language}</Text>
-                        <FlatList
-                            style={styles.list}
-                            showsVerticalScrollIndicator={false}
-                            ItemSeparatorComponent={() => (<View style={{height: 17}}/>)}
-                            data={languages}
-                            renderItem={({item}) => (
-                                <TouchableOpacity onPress={() => {
-                                    changeLanguage(item.key);
-                                    changeLanguageSettingsVisible();
-                                }}>
-                                    <View style={styles.listItem}>
-                                        <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.name}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            )}
-                            keyExtractor={item => item.key}
-                        />
-                    </View>
-                    }
-                    onBackButtonPress={changeLanguageSettingsVisible}
-                    hasBackdrop={false}
-                    animationInTiming={400}
-                    animationOutTiming={400}
-                />
+        <PagerView ref={pagerRef} initialPage={0} scrollEnabled={false} style={{height: '100%'}}>
 
-            <TouchableOpacity
-                onPress={changeLanguageSettingsVisible}
-                style={styles.button}>
-                <Ionicons name={'language'} size={24} color={lightColors.text} style={styles.icon}/>
-                <View>
-                    <Text style={styles.text}>{getWords().language}</Text>
+            <View key={0} style={styles.page}>
+                <View style={styles.emptyView}/>
+                <View style={darkMode ? styles.darkStroke : styles.lightStroke}/>
+                <TouchableOpacity
+                    onPress={() => openLanguageMenu()}
+                    style={styles.button}>
+                    <Ionicons name={'chevron-forward'} size={24} color={darkMode ? darkColors.text: lightColors.text} style={styles.icon}/>
+                    <View>
+                        <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>{getWords(language).language}</Text>
+                    </View>
+                </TouchableOpacity>
+                <View style={darkMode ? styles.darkStroke : styles.lightStroke}/>
+                <TouchableOpacity
+                    onPress={() => openDataMenu()}
+                    style={styles.button}>
+                    <Ionicons name={'chevron-forward'} size={24} color={darkMode ? darkColors.text: lightColors.text} style={styles.icon}/>
+                    <View>
+                        <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>Export/Import</Text>
+                    </View>
+                </TouchableOpacity>
+                <View style={darkMode ? styles.darkStroke : styles.lightStroke}/>
+            </View>
+
+            <View key={1}>
+                <View style={darkMode ? styles.darkSubHeader : styles.lightSubHeader}>
+                    <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>{getWords(language).language}</Text>
                 </View>
-            </TouchableOpacity>
-        </View>
+                <TouchableWithoutFeedback style={{position: 'absolute'}} onPress={() => closeMenu()}>
+                    <Ionicons style={{padding: 10, top: -11.5, right: 5, alignSelf: 'flex-end'}} name={'close'} size={24}  color={darkMode ? darkColors.icon : lightColors.icon} />
+                </TouchableWithoutFeedback>
+                <FlatList
+                    style={{marginTop: 15}}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{alignItems: 'center', justifyContent: 'center'}}
+                    ItemSeparatorComponent={() => (<View style={{height: 17}}/>)}
+                    data={languages}
+                    renderItem={({item}) => (
+                        <TouchableOpacity onPress={() => {
+                            changeLanguage(item.key);
+                            closeMenu();
+                        }}>
+                            <View style={darkMode ? styles.darkListItem : styles.lightListItem}>
+                                <Text style={darkMode ? styles.darkText : styles.lightText}>{item.name}</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                    )}
+                    keyExtractor={item => item.key}
+                />
+            </View>
+
+            <View key={2}>
+                <View style={darkMode ? styles.darkSubHeader : styles.lightSubHeader}>
+                    <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>Export/Import</Text>
+                </View>
+                <TouchableWithoutFeedback style={{position: 'absolute'}} onPress={() => closeMenu()}>
+                    <Ionicons style={{padding: 10, top: -11.5, right: 5, alignSelf: 'flex-end'}} name={'close'} size={24}  color={darkMode ? darkColors.icon : lightColors.icon} />
+                </TouchableWithoutFeedback>
+                <TouchableOpacity
+                    onPress={() => Clipboard.setString(JSON.stringify([todos, done]))}
+                    style={styles.button}>
+                    <View>
+                        <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>{getWords(language).copy}</Text>
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => getClipboardContent()}
+                    style={styles.button}>
+                    <View>
+                        <Text style={darkMode ? styles.darkSubtitle : styles.lightSubtitle}>{getWords(language).paste}</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+        </PagerView>
     );
 }
 
 const styles = StyleSheet.create({
     button:{
-        backgroundColor: lightColors.button,
         padding: 15,
         alignItems: 'center',
-        borderRadius: 15,
-        shadowColor: '#000',
-        elevation: 4,
-        marginVertical: 20,
     },
-    view: {
+    emptyView:{
+        padding: 15,
+    },
+    darkStroke:{
+        borderBottomWidth: 1,
+        borderColor: darkColors.inputFieldBorder,
+    },
+    lightStroke:{
+        borderBottomWidth: 1,
+        borderColor: lightColors.inputFieldBorder,
+    },
+    page: {
         padding: 30,
     },
-    text:{
+    darkSubtitle:{
+        textAlign: 'center',
+        color: darkColors.text,
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    lightSubtitle:{
         textAlign: 'center',
         color: lightColors.text,
         fontSize: 20,
@@ -99,19 +176,18 @@ const styles = StyleSheet.create({
         right: 15,
         paddingVertical: 15,
     },
-    settingsModal:{
-        position: 'absolute',
-        height: 600,
-        width: 320,
-        borderRadius: 8,
-        alignSelf: 'center',
-        top: 80,
-        backgroundColor: lightColors.foreground,
-        alignItems: 'center',
-    },
-    listItem:{
+    darkListItem:{
         borderColor: '#000000',
-        marginTop: 15,
+        width: 260,
+        height: 50,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: darkColors.inputFieldBorder,
+        color: darkColors.placeHolderText,
+    },
+    lightListItem:{
+        borderColor: '#000000',
         width: 260,
         height: 50,
         alignItems: 'center',
@@ -119,16 +195,26 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: lightColors.inputFieldBorder,
     },
-    list:{
-        marginTop: 50,
+    darkText:{
+        color: darkColors.text,
+        fontSize: 15,
     },
-    title: {
-        marginTop: 15,
-        textAlign: 'center',
+    lightText:{
         color: lightColors.text,
-        fontSize: 20,
-        fontWeight: 'bold',
-        alignSelf: 'center',
-        position: 'absolute',
+        fontSize: 15,
+    },
+    darkSubHeader:{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: darkColors.text,
+        top: 25,
+    },
+    lightSubHeader:{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: lightColors.text,
+        top: 25,
     },
 });

@@ -1,23 +1,24 @@
 
 // noinspection JSUnresolvedFunction
 
-import React, {useState} from "react";
+import React from "react";
 import {FlatList, StyleSheet, View} from "react-native";
 import AddTodo from "../components/AddTodo";
-import ToDoItem from "../components/items/ToDoItem";
+import ToDoItem from "../items/ToDoItem";
+import {finishTodo} from "../handler/ItemHandler";
 
 
-export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, removeTodo, language, showCurrentToDo}){
+export default function ToDoScreen({darkMode, todos, language, showCurrentItem, setTodos, setDone, setItemOverviewVisible, setIsEditing, name, setName}){
     return(
         <View style={styles.view}>
             <View style={styles.content}>
                 <AddTodo
-                    style={styles.addTodo}
-                    text={text}
-                    submitHandler={() => addTodo(text)}
                     darkMode={darkMode}
-                    changeHandler={(text) => changeText(text)}
                     language={language}
+                    setTodos={setTodos}
+                    setIsEditing={setIsEditing}
+                    name={name}
+                    setName={setName}
                 />
                 <View style={styles.list}>
                     <FlatList
@@ -27,9 +28,9 @@ export default function ToDoScreen({darkMode, text, todos, changeText, addTodo, 
                         renderItem={({item}) => (
                             <ToDoItem
                                 item={item}
-                                pressHandler={() => removeTodo(item.key, item.text)}
+                                pressHandler={() => finishTodo(item, setTodos, setDone, setItemOverviewVisible)}
                                 darkMode={darkMode}
-                                showCurrentToDo={showCurrentToDo}
+                                showCurrentItem={showCurrentItem}
                             />
                         )}
                         keyExtractor={item => item.key}
@@ -45,7 +46,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        //paddingVertical: 20,
         paddingTop: 20,
         padding: 40,
         flex: 100,

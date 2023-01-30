@@ -1,70 +1,48 @@
-import React from "react";
+import React, {useState} from "react";
 import {StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native";
-import {darkColors, lightColors} from "./constants/ColorThemes";
-import {de, en, fr} from "./constants/Languages";
+import {darkColors, lightColors} from "../constants/ColorThemes";
+import {getWords} from "../handler/DataHandler";
+import {addNewTodo, changeText} from "../handler/ItemHandler";
 
+export default function AddTodo({darkMode, language, setTodos, setIsEditing, name, setName}) {
 
-export default function AddTodo({submitHandler, darkMode, text, changeHandler, language}) {
-
-    const getWords = () => {
-        if(language === 'de'){
-            return de;
-        } else if(language === 'fr'){
-            return fr;
-        } else{
-            return en;
-        }
-    }
-
-    if (darkMode) {
-    return (
-        <View style={styles.view}>
-            <TextInput
-                style={styles.inputFieldDarkMode}
-                placeholder={getWords().placeholder}
-                //placeholderTextColor={'#ddd'}
-                placeholderTextColor={darkColors.placeHolderText}
-                value={text}
-                onChangeText={(text) => changeHandler(text)}
-            />
-            <TouchableOpacity onPress={() => submitHandler(text)} style={styles.button}>
-                <View>
-                    <Text style={styles.buttonText}>{getWords().button}</Text>
-                </View>
-            </TouchableOpacity>
-        </View>
-    );
-    } else{
         return (
             <View >
                 <TextInput
-                    style={styles.inputFieldLightMode}
-                    placeholder={getWords().placeholder}
-                    //placeholderTextColor={'#ddd'}
-                    placeholderTextColor={lightColors.placeHolderText}
-                    value={text}
-                    onChangeText={(text) => changeHandler(text)}
+                    style={darkMode ? darkStyles.input : lightStyles.input}
+                    placeholder={getWords(language).newTodo}
+                    placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
+                    value={name}
+                    onChangeText={(name) => changeText(name, setName)}
                 />
-                <TouchableOpacity onPress={() => submitHandler(text)} style={styles.button}>
-                    <View>
-                        <Text style={styles.buttonText}>{getWords().button}</Text>
-                    </View>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => addNewTodo(name, '', 0, new Date(0), 0, setTodos, language, setName)}
+                        onLongPress={() => setIsEditing(true)}
+                        style={styles.button}
+                    >
+                        <View>
+                            <Text style={darkMode ? darkStyles.buttonText : lightStyles.buttonText}>{getWords(language).addTodo}</Text>
+                        </View>
+                    </TouchableOpacity>
             </View>
         );
-    }
 }
 
 const styles = StyleSheet.create({
-    inputFieldLightMode: {
-        marginBottom: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderBottomWidth: 1,
-        borderBottomColor: lightColors.inputFieldBorder,
-        color: lightColors.text,
+    button:{
+        backgroundColor: lightColors.button,
+        padding: 8,
+        alignItems: 'center',
+        borderRadius: 6,
     },
-    inputFieldDarkMode: {
+});
+
+const darkStyles = StyleSheet.create({
+    buttonText:{
+        fontSize: 16,
+        color: darkColors.text,
+    },
+    input: {
         marginBottom: 10,
         paddingHorizontal: 8,
         paddingVertical: 6,
@@ -72,15 +50,37 @@ const styles = StyleSheet.create({
         borderBottomColor: darkColors.inputFieldBorder,
         color: darkColors.text,
     },
-    button:{
-        backgroundColor: lightColors.button,
-        padding: 8,
-        alignItems: 'center',
-        borderRadius: 6,
-        shadowColor: '#000',
-        elevation: 4,
+    buttonShadow:{
+        shadowColor: darkColors.shadow,
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.55,
+        shadowRadius: 8,
     },
+});
+
+const lightStyles = StyleSheet.create({
     buttonText:{
         fontSize: 16,
-    }
-})
+        color: lightColors.text,
+    },
+    input: {
+        marginBottom: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderBottomWidth: 1,
+        borderBottomColor: lightColors.inputFieldBorder,
+        color: lightColors.text,
+    },
+    buttonShadow:{
+        shadowColor: lightColors.shadow,
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.3,
+        shadowRadius: 2,
+    },
+});

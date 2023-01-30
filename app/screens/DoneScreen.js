@@ -1,8 +1,9 @@
 import React from "react";
 import {FlatList, StyleSheet, View} from "react-native";
-import DoneItem from "../components/items/DoneItem";
+import DoneItem from "../items/DoneItem";
+import {deleteDone} from "../handler/ItemHandler";
 
-export default function DoneScreen({darkMode, done, removeDone}){
+export default function DoneScreen({darkMode, done, showCurrentItem, setDone, setItemOverviewVisible}){
     return(
         <View style={styles.view}>
             <View style={styles.content}>
@@ -14,8 +15,9 @@ export default function DoneScreen({darkMode, done, removeDone}){
                         renderItem={({item}) => (
                             <DoneItem
                                 item={item}
-                                pressHandler={() => removeDone(item.key)}
+                                pressHandler={() => deleteDone(item.key, setDone, setItemOverviewVisible)}
                                 darkMode={darkMode}
+                                showCurrentItem={showCurrentItem}
                             />
                         )}
                         keyExtractor={item => item.key}
@@ -31,7 +33,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     content: {
-        //paddingVertical: 20,
         paddingTop: 20,
         padding: 40,
         flex: 100,

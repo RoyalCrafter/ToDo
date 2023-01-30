@@ -4,32 +4,51 @@ import {StyleSheet, Text, TouchableWithoutFeedback, View} from 'react-native';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Ionicons from "react-native-vector-icons/Ionicons"
 import Feather from "react-native-vector-icons/Feather";
-import {darkColors, lightColors} from "./constants/ColorThemes";
-import {de, en, fr} from "./constants/Languages";
+import {darkColors, lightColors} from "../constants/ColorThemes";
+import {getWords} from "../handler/DataHandler";
+import {displayNotification} from "../handler/NotificationHandler";
 
 
-export default function Header({changeMode, showSettings, toggleAmoled, darkMode, amoled, page, language, settingsVisible, todoOverviewVisible, todoName, setTodoOverviewVisible}) {
+export default function Header({changeMode, showSettings, toggleAmoled, darkMode, amoled, page, language, settingsVisible, itemOverviewVisible, todoName, setItemOverviewVisible, setIsEditing, isEditing}) {
 
-
-    const getWords = () => {
-        if(language === 'de'){
-            return de;
-        } else if(language === 'fr'){
-            return fr;
-        } else{
-            return en;
+    const getTitle = () => {
+        if(settingsVisible){
+            return getWords(language).settings;
+        } else if(itemOverviewVisible){
+            if(todoName.length > 20){
+                return (todoName.substring(0, 20) + '...');
+            } else {
+                return todoName;
+            }
+        } else if(isEditing){
+            return getWords(language).addTodo;
+        } else if(page === 'todo'){
+            return getWords(language).todo;
+        } else if(page === 'done'){
+            return getWords(language).done;
         }
     }
 
-        return(
-            <View style={darkMode ? (amoled ? darkStyles.headerAmoled : darkStyles.header) : lightStyles.header}>
-                <Text style={darkMode ? darkStyles.title : lightStyles.title}>{settingsVisible ? getWords().settings : todoOverviewVisible ? todoName : (page === 'todo' ? getWords().todo : getWords().done)}</Text>
-                <DarkModeToggle changeMode={() => changeMode()} darkMode={darkMode} toggleAmoled={toggleAmoled}/>
-                <TouchableWithoutFeedback onPress={todoOverviewVisible ? () => setTodoOverviewVisible(false) : () => showSettings()}>
-                    <Ionicons name={settingsVisible || todoOverviewVisible ? 'chevron-back' : 'settings-outline'} size={28}  color={darkMode ? darkColors.icon : lightColors.icon} style={darkMode ? darkStyles.menu : lightStyles.menu}/>
-                </TouchableWithoutFeedback>
-            </View>
-        );
+    return(
+        <View style={darkMode ? (amoled ? darkStyles.headerAmoled : darkStyles.header) : lightStyles.header}>
+            <Text style={darkMode ? darkStyles.title : lightStyles.title}>{getTitle()}</Text>
+            <DarkModeToggle
+                changeMode={() => changeMode()}
+                darkMode={darkMode}
+                toggleAmoled={toggleAmoled}
+            />
+            <TouchableWithoutFeedback
+                onPress={itemOverviewVisible ? () => {setItemOverviewVisible(false); setIsEditing(false)} : () => {showSettings(); setIsEditing(false);}}
+            >
+                <Ionicons
+                    name={settingsVisible || itemOverviewVisible ? 'chevron-back' : 'settings-outline'}
+                    size={28}
+                    color={darkMode ? darkColors.icon : lightColors.icon}
+                    style={darkMode ? darkStyles.menu : lightStyles.menu}
+                />
+            </TouchableWithoutFeedback>
+        </View>
+    );
 }
 
 
@@ -69,6 +88,7 @@ const lightStyles = StyleSheet.create({
         textAlign: 'center',
         color: lightColors.text,
         fontSize: 20,
+        fontFamily: 'Roboto',
         fontWeight: 'bold',
         alignSelf: 'center',
         position: 'absolute',
