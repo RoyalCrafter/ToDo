@@ -3,6 +3,7 @@ import {StyleSheet, Text, TextInput, TouchableOpacity, View,} from "react-native
 import {darkColors, lightColors} from "../constants/ColorThemes";
 import {getWords} from "../handler/DataHandler";
 import {addNewTodo, changeText} from "../handler/ItemHandler";
+import {onDisplayNotification} from "../handler/NotificationHandler";
 
 export default function AddTodo({darkMode, language, setTodos, setIsEditing, name, setName}) {
 

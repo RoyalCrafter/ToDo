@@ -6,7 +6,7 @@ export const de = {
     settings: 'Einstellungen',
     newTodo: 'Neues ToDo...',
     addTodo: 'ToDo hinzufügen',
-    alert: 'Der ToDo-Name muss mindestens 3 Zeichen lang sein.',
+    alert_name_length: 'Der ToDo-Name muss mindestens 3 Zeichen lang sein.',
     language: 'Sprache',
     name: 'Name',
     description: 'Bemerkung',
@@ -43,6 +43,11 @@ export const de = {
     days: 'Tage',
     hours: 'Stunden',
     minutes: 'Minuten',
+    alert_wrong_format: 'Das Format der Angaben für die Dauer konnte nicht gelesen werden',
+    notifications: 'Benachrichtigungen',
+    cancel: 'Abbrechen',
+    confirm: 'Bestätigen',
+    time: 'Uhrzeit',
 }
 
 export const en = {
@@ -51,7 +56,7 @@ export const en = {
     settings: 'Settings',
     newTodo: 'New ToDo...',
     addTodo: 'Add ToDo',
-    alert: 'The ToDo name needs to be minimum 3 characters long.',
+    alert_name_length: 'The ToDo name needs to be minimum 3 characters long.',
     language: 'Language',
     name: 'Name',
     description: 'Comment',
@@ -88,6 +93,11 @@ export const en = {
     days: 'Days',
     hours: 'Hours',
     minutes: 'Minutes',
+    alert_wrong_format: 'Das Format der Angaben für die Dauer konnte nicht gelesen werden',
+    notifications: 'Notifications',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    time: 'Time',
 }
 
 export const fr = {
@@ -96,7 +106,7 @@ export const fr = {
     settings: 'Paramètre',
     newTodo: 'Nouveau ToDo...',
     addTodo: 'Ajouter ToDo',
-    alert: 'Le ToDo soit être au moins 3 caractères long.',
+    alert_name_length: 'Le ToDo soit être au moins 3 caractères long.',
     language: 'Langue',
     name: 'Nom',
     description: 'Remarque',
@@ -133,6 +143,11 @@ export const fr = {
     days: 'Jours',
     hours: 'Heures',
     minutes: 'Minutes',
+    alert_wrong_format: 'Das Format der Angaben für die Dauer konnte nicht gelesen werden',
+    notifications: 'Benachrichtigungen',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    time: 'Time',
 }
 
 

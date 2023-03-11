@@ -7,13 +7,13 @@ import {getPriorityColor} from "../handler/ItemHandler";
 export default function ToDoItem({item, pressHandler, darkMode, showCurrentItem}){
 
     return (
-        <TouchableOpacity onPress={() => showCurrentItem(item, true)}>
+        <TouchableOpacity onPress={() => showCurrentItem(item)}>
             <View style={darkMode ? styles.itemDarkMode : styles.itemLightMode}>
                 <View style={styles.priorityView}>
                     <View style={[styles.priority, {backgroundColor: getPriorityColor(item)}]}/>
                 </View>
-                <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.text}</Text>
-                <TouchableOpacity style={styles.touchable} onPress={() => pressHandler(item.key, item.text)}>
+                <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.name}</Text>
+                <TouchableOpacity style={styles.touchable} onPress={() => pressHandler(item.key, item.name)}>
                     <Octicons name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
                 </TouchableOpacity>
             </View>

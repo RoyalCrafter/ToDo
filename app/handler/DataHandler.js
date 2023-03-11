@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {MMKV} from "react-native-mmkv";
 import {de, en, fr} from "../constants/Languages";
 
@@ -21,8 +21,8 @@ export const saveData = (todos, done, darkMode, amoled, language) => {
 export const getData = (setTodos, setDone, setDarkMode, setAmoled, setLanguage) => {
     try {
         const todosValue = storage.getString(todosKey);
-        const darkModeValue = storage.getString(darkModeKey);
         const doneValue = storage.getString(doneKey);
+        const darkModeValue = storage.getString(darkModeKey);
         const amoledValue = storage.getString(amoledKey)
         const languageValue = storage.getString(languageKey)
         if (todosValue !== null) {
@@ -45,6 +45,53 @@ export const getData = (setTodos, setDone, setDarkMode, setAmoled, setLanguage) 
     }
 };
 
+export const getItemData = (key) => {
+    if(storage.contains(key + '')) {
+        console.log(JSON.parse(storage.getString(key + '')))
+        return JSON.parse(storage.getString(key + ''));
+    }
+}
+
+export const saveItemData = (item) => {
+    storage.set(item.key + '', JSON.stringify(item))
+}
+
+export const clear = () => {
+    storage.clearAll();
+}
+
+export const deleteItemData = (key) => {
+    storage.delete(key + '');
+}
+
+
+export const convertDataFormat = async (setTodos, setDone, setDarkMode, setAmoled, setLanguage) => {
+    const todosValue = JSON.parse(storage.getString(todosKey));
+    const doneValue = JSON.parse(storage.getString(doneKey));
+    const darkModeValue = JSON.parse(storage.getString(darkModeKey));
+    const amoledValue = JSON.parse(storage.getString(amoledKey));
+    const languageValue = JSON.parse(storage.getString(languageKey));
+
+    const [tempTodos, setTempTodos] = useState([]);
+    const [tempDone, setTempDone] = useState([]);
+
+    await todosValue.forEach((item) => {
+        saveItemData({key: item.key, description: item.description, date: item.date, duration: item.duration})
+        setTempTodos(prevTodos => {
+            return [{key: item.key, name: item.text, priority: item.priority}, ...prevTodos]
+        })
+    })
+
+    await doneValue.forEach((item) => {
+        saveItemData({key: item.key, description: item.description, date: item.date, duration: item.duration})
+        setTempDone(prevDone => {
+            return [{key: item.key, name: item.text, priority: item.priority}, ...prevDone]
+        })
+    })
+
+    await saveData(tempTodos, tempDone, darkModeValue, amoledValue, languageValue)
+    await getData(setTodos, setDone, setDarkMode, setAmoled, setLanguage)
+}
 
 export const getWords = (language) => {
     if(language === 'de'){

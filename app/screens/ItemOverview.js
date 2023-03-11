@@ -4,25 +4,27 @@ import {darkColors, lightColors} from "../constants/ColorThemes";
 import Octicons from "react-native-vector-icons/Octicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import {getWords} from "../handler/DataHandler";
+import {getItemData, getWords} from "../handler/DataHandler";
 import EditOverview from "./EditOverview";
-import {deleteDone, deleteTodo, finishTodo, getNonTransparentPriorityColor} from "../handler/ItemHandler";
+import {deleteDone, deleteTodo, finishTodo, getNonTransparentPriorityColor, restoreToDo} from "../handler/ItemHandler";
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 
 
 export default function ItemOverview({darkMode, language, item, setDone, setItemOverviewVisible, setTodos, setValue, todos, isEditing, setIsEditing}) {
-    const [name, setName] = useState(item.text);
-    const [description, setDescription] = useState(item.description);
+    const expandedItem = getItemData(item.key)
+    const [name, setName] = useState(item.name);
     const [priority, setPriority] = useState(item.priority);
-    const [date, setDate] = useState(item.date);
-    const [duration, setDuration] = useState(item.duration);
+    const [description, setDescription] = useState(expandedItem.description);
+    const [date, setDate] = useState(expandedItem.date);
+    const [duration, setDuration] = useState(expandedItem.duration);
+    const [notificationDate, setNotificationDate] = useState(expandedItem.notificationDate);
 
     const getDate = () => {
         return new Date(date).toLocaleDateString();
     }
 
     const getDuration = () => {
-        const minutes = duration / 60 * 1000;
+        const minutes = duration / (60 * 1000);
         const hours = minutes / 60;
         const days = hours / 24;
         const weeks = days / 7;
@@ -50,6 +52,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
 
 
     const getDescriptionContent = () => {
+        console.log(name)
         if(description === ''){
             return(<></>);
         } else {
@@ -57,7 +60,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                 <>
                     <Text
                         style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).description}</Text>
-                    <Text style={darkMode ? darkStyles.text : lightStyles.text}>{item.description}</Text>
+                    <Text style={darkMode ? darkStyles.text : lightStyles.text}>{description}</Text>
                 </>
             );
         }
@@ -102,6 +105,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                     language={language}
                     setIsEditing={setIsEditing}
                     item={item}
+                    expandedItem={expandedItem}
                     setItemOverviewVisible={setItemOverviewVisible}
                     todos={todos}
                     setValue={setValue}
@@ -121,21 +125,25 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                 :
                 <>
                     <ScrollView style={styles.scrollView} contentContainerStyle={{alignItems: 'center'}} showsVerticalScrollIndicator={false}>
-                        <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).name}</Text>
-                        <Text style={darkMode ? darkStyles.text : lightStyles.text}>{item.text}</Text>
+                        <>
+                            <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).name}</Text>
+                            <Text style={darkMode ? darkStyles.text : lightStyles.text}>{item.name}</Text>
+                        </>
+                        <>
+                            <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).priority}</Text>
+                            <SegmentedControl
+                                tintColor={getNonTransparentPriorityColor(item)}
+                                backgroundColor={darkMode ? darkColors.modal : lightColors.modal}
+                                fontStyle={{color: darkMode ? darkColors.text : lightColors.text}}
+                                activeFontStyle={{color: lightColors.text}}
+                                style={styles.controlTab}
+                                values={[getWords(language).low, getWords(language).medium, getWords(language).high]}
+                                selectedIndex={priority}
+                            />
+                        </>
                         {getDescriptionContent()}
-                        <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).priority}</Text>
-                        <SegmentedControl
-                            tintColor={getNonTransparentPriorityColor(item)}
-                            backgroundColor={darkMode ? darkColors.modal : lightColors.modal}
-                            fontStyle={{color: darkMode ? darkColors.text : lightColors.text}}
-                            activeFontStyle={{color: lightColors.text}}
-                            style={styles.controlTab}
-                            values={[getWords(language).low, getWords(language).medium, getWords(language).high]}
-                            selectedIndex={priority}
-                        />
                         {getDateContent()}
-                        {getDurationContent()}
+                        {/*{getDurationContent()}*/}
                         <View style={{height: 20}}/>
                     </ScrollView>
                     {item.isToDo ?
@@ -151,8 +159,10 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                         <DoneButtons
                             item={item}
                             darkMode={darkMode}
+                            setTodos={setTodos}
                             setDone={setDone}
                             setItemOverviewVisible={setItemOverviewVisible}
+                            language={language}
                         />
                     }
                 </>
@@ -179,13 +189,20 @@ function ToDoButtons({darkMode, setIsEditing, item, setTodos, setDone, setItemOv
         </View>
     );
 }
-function DoneButtons({darkMode, item, setDone, setItemOverviewVisible}) {
+function DoneButtons({darkMode, item, setTodos, setDone, setItemOverviewVisible, language}) {
     return(
         <View>
             <View style={styles.buttonView}>
+                <View style={styles.buttonView}>
                     <TouchableOpacity style={styles.doneButton} onPress={() => deleteDone(item.key, setDone, setItemOverviewVisible)}>
                         <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
                     </TouchableOpacity>
+                </View>
+                <View style={styles.buttonView}>
+                    <TouchableOpacity style={styles.doneButton} onPress={() => restoreToDo(item, setTodos, setDone, setItemOverviewVisible, language)}>
+                        <MaterialCommunityIcons name="backup-restore" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -220,7 +237,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 10,
         borderRadius: 15,
         marginVertical: 20,
-        width: (windowWidth - 20),
+        width: (windowWidth - 40) / 2,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',

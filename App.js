@@ -3,6 +3,7 @@ import React, {useEffect, useState} from 'react';
 import {darkColors, lightColors} from './app/constants/ColorThemes';
 import Header from './app/components/Header';
 import {
+  BackHandler,
   StatusBar,
   StyleSheet,
   View,
@@ -12,16 +13,19 @@ import Settings from "./app/screens/Settings";
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import useColorScheme from "react-native/Libraries/Utilities/useColorScheme";
 import ItemOverview from "./app/screens/ItemOverview";
-import {saveData, getData} from "./app/handler/DataHandler";
+import {saveData, getData, getItemData, saveItemData, clear, convertDataFormat} from "./app/handler/DataHandler";
 import PagerView from "react-native-pager-view";
 import ToDoScreen from "./app/screens/ToDoScreen";
 import DoneScreen from "./app/screens/DoneScreen";
 import EditOverview from "./app/screens/EditOverview";
-import {displayNotification} from "./app/handler/NotificationHandler";
-//import BackgroundFetch from "react-native-background-fetch";
+import {onDisplayNotification} from "./app/handler/NotificationHandler";
+import notifee, {EventType} from "@notifee/react-native";
+import {isToDo} from "./app/handler/ItemHandler";
+import {version as app_version}  from './package.json';
 
 
 const STYLES = ['default', 'dark-content', 'light-content'];
+
 
 export default function App() {
 
@@ -29,12 +33,12 @@ export default function App() {
   const [done, setDone] = useState([]);
   const [darkMode, setDarkMode] = useState(useColorScheme() !== 'light');
   const [amoled, setAmoled] = useState(false);
-  const [page, setPage] = useState('');
+  const [page, setPage] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [language, setLanguage] = useState('de');
   const [statusBarStyle, setStatusBarStyle] = useState(STYLES[0]);
   const [itemOverviewVisible, setItemOverviewVisible] = useState(false);
-  const [currentItem, setCurrentItem] = useState({key: ' ', text: ' ', description: ' ', priority: 0, date: 0, duration: 0, isTodo: true});
+  const [currentItem, setCurrentItem] = useState({key: '', name: '', priority: 0, isToDo: true});
   const [value, setValue] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -42,8 +46,7 @@ export default function App() {
   const [priority, setPriority] = useState(0);
   const [date, setDate] = useState(new Date(0));
   const [duration, setDuration] = useState(0);
-
-
+  const pagerRef = React.useRef(PagerView);
 
   const changeMode = () => {
     setDarkMode(prevDarkMode => !prevDarkMode);
@@ -61,30 +64,64 @@ export default function App() {
     setLanguage(val);
   }
 
-  const changePage = val => {
-    setPage(val);
-  };
 
-  const showCurrentItem = (item, isToDo) => {
-    setCurrentItem({key: item.key, text: item.text, description: item.description, priority: item.priority, date: item.date, duration: item.duration, isToDo: isToDo});
+
+  const showCurrentItem = (item) => {
+    setCurrentItem({key: item.key, name: item.name, priority: item.priority, isToDo: isToDo(item, todos)});
     setItemOverviewVisible(true);
   }
 
 
   useEffect(() => {
-    console.log("dsgfg");
     const init = async () => {
-      console.log("dsgfg");
-      //initBackgroundFetch();
+      if(app_version === "1.3.0"){
+        await convertDataFormat(setTodos, setDone, setDarkMode, setAmoled, setLanguage);
+      }
       getData(setTodos, setDone, setDarkMode, setAmoled, setLanguage);
-      console.log("dsgfg");
     }
     init().finally(async () => {
-      console.log("dsgfg");
       await RNBootSplash.hide({fade: true});
-      console.log("dsgfg");
     })
   }, []);
+
+
+  useEffect(() => {}, [settingsVisible, itemOverviewVisible, isEditing]);
+
+  //Create BackHandler
+  useEffect(() => {
+    const backAction = () => {
+      console.log(settingsVisible + ' ' + isEditing + ' ' + itemOverviewVisible + ' ' + page)
+      if(settingsVisible) {
+        console.log('settingsVisible: ' + settingsVisible)
+        setSettingsVisible(false);
+        setValue(value + 1);
+        return true;
+      }else if(isEditing) {
+        console.log('isEditing: ' + isEditing)
+        setIsEditing(false);
+        setValue(value + 1);
+        return true;
+      }else if(itemOverviewVisible) {
+        console.log('itemOverviewVisible: ' + itemOverviewVisible)
+        setItemOverviewVisible(false);
+        setValue(value + 1);
+        return true;
+      }else if (!page) {
+        setPage(false)
+        pagerRef.current.setPage(0);
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
 
   useEffect(() => {
     saveData(todos, done, darkMode, amoled, language);
@@ -96,38 +133,15 @@ export default function App() {
     setTimeout(() => setStatusBarStyle('light-content'), 1);
   }, [darkMode, amoled]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     todos.forEach((item) => {
-      //if(new Date(item.date).getTime() !== 0) {
+      if(new Date(item.date).getTime() !== 0) {
         if (new Date(item.date).getTime() - item.duration < Date.now()) {
-          displayNotification().then(r => (console.log(r)));
+          onDisplayNotification(item, language);
         }
-      //}
+      }
     })
-  });
-
-  /*const initBackgroundFetch = async () => {
-    // BackgroundFetch event handler.
-    const onEvent = async (taskId) => {
-      console.log('[BackgroundFetch] task: ', taskId);
-      // Do your background work...
-
-      // IMPORTANT:  You must signal to the OS that your task is complete.
-      BackgroundFetch.finish(taskId);
-    }
-
-    // Timeout callback is executed when your Task has exceeded its allowed running-time.
-    // You must stop what you're doing immediately BackgroundFetch.finish(taskId)
-    const onTimeout = async (taskId) => {
-      console.warn('[BackgroundFetch] TIMEOUT task: ', taskId);
-      BackgroundFetch.finish(taskId);
-    }
-
-    // Initialize BackgroundFetch only once when component mounts.
-    let status = await BackgroundFetch.configure({minimumFetchInterval: 15}, onEvent, onTimeout);
-
-    console.log('[BackgroundFetch] configure status: ', status);
-  }*/
+  });*/
 
 
 
@@ -144,7 +158,7 @@ export default function App() {
             page={page}
             language={language}
             itemOverviewVisible={itemOverviewVisible}
-            todoName={currentItem.text.length > 15 ? currentItem.text.substring(0, 14) + '...' : currentItem.text}
+            todoName={currentItem.name.length > 20 ? currentItem.name.substring(0, 19) + '...' : currentItem.name}
             setItemOverviewVisible={setItemOverviewVisible}
             setIsEditing={setIsEditing}
             isEditing={isEditing}
@@ -208,7 +222,7 @@ export default function App() {
         }
 
 
-        <PagerView initialPage={0} style={{flex: 1}} onPageSelected={() => changePage(page === 'todo' ? 'done' : 'todo')}>
+        <PagerView initialPage={0} style={{flex: 1}} ref={pagerRef} onPageSelected={() => setPage(!page)}>
           <View key={0}>
             {settingsVisible || itemOverviewVisible ?
                 <View />

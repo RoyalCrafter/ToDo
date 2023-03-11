@@ -5,7 +5,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
     ext {
-        buildToolsVersion = "31.0.0"
+        buildToolsVersion = "33.0.0"
         minSdkVersion = 23
         compileSdkVersion = 33
         targetSdkVersion = 33
@@ -23,7 +23,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.4")
+        classpath("com.android.tools.build:gradle:7.4.0")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("de.undercouch:gradle-download-task:4.1.2")
         // NOTE: Do not place your application dependencies here; they belong
@@ -50,5 +50,6 @@ allprojects {
         }
         google()
         maven { url 'https://www.jitpack.io' }
+        maven { url '$rootDir/../node_modules/@notifee/react-native/android/libs'}
     }
 }

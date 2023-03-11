@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {StyleSheet, TextInput, View, Text, TouchableOpacity} from "react-native";
 import {darkColors, lightColors} from "../constants/ColorThemes";
 import {getWords} from "../handler/DataHandler";
@@ -6,13 +6,14 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default function DurationInput({darkMode, language, weeks, days, hours, minutes, setWeeks, setDays, setHours, setMinutes}) {
 
-    const changeWeeks = val => {
+
+    const changeWeeks = (val) => {
         if(weeks !== 0 || val > 0) {
             setWeeks(parseInt(weeks) + val)
         }
     }
 
-    const changeDays = val => {
+    const changeDays = (val) => {
         if(val > 0) {
             if (days === 6) {
                 setDays(-1 + val)
@@ -27,7 +28,7 @@ export default function DurationInput({darkMode, language, weeks, days, hours, m
         setDays(parseInt(days) + val)
     }
 
-    const changeHours = val => {
+    const changeHours = (val) => {
         if(val > 0) {
             if (hours === 23) {
                 setHours(-1 + val)
@@ -42,7 +43,7 @@ export default function DurationInput({darkMode, language, weeks, days, hours, m
         setHours(parseInt(hours) + val)
     }
 
-    const changeMinutes = val => {
+    const changeMinutes = (val) => {
         if(val > 0) {
             if (minutes === 59) {
                 setMinutes(-1 + val)
@@ -61,7 +62,9 @@ export default function DurationInput({darkMode, language, weeks, days, hours, m
     return (
         <View style={styles.container}>
             <View style={styles.view}>
-                <TouchableOpacity onPress={() => changeWeeks(+1)}>
+                <TouchableOpacity
+                    onPress={() => changeWeeks(+1)}
+                >
                     <Ionicons
                         name={'caret-up'}
                         size={28}
@@ -130,7 +133,9 @@ export default function DurationInput({darkMode, language, weeks, days, hours, m
                 <Text style={darkMode ? darkStyles.subtext : lightStyles.subtext}>{getWords(language).hours}</Text>
             </View>
             <View style={styles.view}>
-                <TouchableOpacity onPress={() => changeMinutes(+1)}>
+                <TouchableOpacity
+                    onPress={() => changeMinutes(+1)}
+                >
                     <Ionicons
                         name={'caret-up'}
                         size={28}

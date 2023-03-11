@@ -6,25 +6,21 @@ import Ionicons from "react-native-vector-icons/Ionicons"
 import Feather from "react-native-vector-icons/Feather";
 import {darkColors, lightColors} from "../constants/ColorThemes";
 import {getWords} from "../handler/DataHandler";
-import {displayNotification} from "../handler/NotificationHandler";
 
 
 export default function Header({changeMode, showSettings, toggleAmoled, darkMode, amoled, page, language, settingsVisible, itemOverviewVisible, todoName, setItemOverviewVisible, setIsEditing, isEditing}) {
 
     const getTitle = () => {
+        console.log(page)
         if(settingsVisible){
             return getWords(language).settings;
         } else if(itemOverviewVisible){
-            if(todoName.length > 20){
-                return (todoName.substring(0, 20) + '...');
-            } else {
-                return todoName;
-            }
+            return todoName;
         } else if(isEditing){
             return getWords(language).addTodo;
-        } else if(page === 'todo'){
+        } else if(page){
             return getWords(language).todo;
-        } else if(page === 'done'){
+        } else if(!page){
             return getWords(language).done;
         }
     }
@@ -38,10 +34,10 @@ export default function Header({changeMode, showSettings, toggleAmoled, darkMode
                 toggleAmoled={toggleAmoled}
             />
             <TouchableWithoutFeedback
-                onPress={itemOverviewVisible ? () => {setItemOverviewVisible(false); setIsEditing(false)} : () => {showSettings(); setIsEditing(false);}}
+                onPress={isEditing ? () => {setIsEditing(false)} : itemOverviewVisible ? () => {setItemOverviewVisible(false); setIsEditing(false)} : () => {showSettings()}}
             >
                 <Ionicons
-                    name={settingsVisible || itemOverviewVisible ? 'chevron-back' : 'settings-outline'}
+                    name={settingsVisible || itemOverviewVisible || isEditing ? 'chevron-back' : 'settings-outline'}
                     size={28}
                     color={darkMode ? darkColors.icon : lightColors.icon}
                     style={darkMode ? darkStyles.menu : lightStyles.menu}

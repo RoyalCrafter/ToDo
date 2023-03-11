@@ -1,8 +1,11 @@
 import React from "react";
 import {ToastAndroid} from "react-native";
-import {getWords} from "./DataHandler";
+import {deleteItemData, getWords, saveItemData} from "./DataHandler";
+import {onDisplayNotification} from "./NotificationHandler";
+import notifee from "@notifee/react-native";
 
-export const changeItem = (key, text, description, priority, date, duration, todos, setItemOverviewVisible, setValue) => {
+export const changeItem = (key, name, description, priority, date, duration, todos, notificationDate, setItemOverviewVisible, setValue, language) => {
+
     const close = async () => {
         setItemOverviewVisible(false);
     }
@@ -10,11 +13,18 @@ export const changeItem = (key, text, description, priority, date, duration, tod
         const change = async () => {
             todos.forEach((item) => {
                 if (item.key === key) {
-                    item.text = removeEmojis(text);
-                    item.description = description;
+                    if(item.duration !== 0 && new Date(item.date).getTime() !== 0) {
+                        notifee.cancelTriggerNotification(key + '-todo');
+                    }
+                    onDisplayNotification({
+                        key: new Date().getTime(),
+                        name: name,
+                        priority: priority,
+                        date: notificationDate
+                    }, language).then(r => (''))
+                    item.name = removeEmojis(name);
                     item.priority = priority;
-                    item.date = date;
-                    item.duration = duration;
+                    saveItemData({key: key, description: description, date: date, duration: duration, notificationDate: notificationDate});
                 }
             });
         }
@@ -25,16 +35,25 @@ export const changeItem = (key, text, description, priority, date, duration, tod
 };
 
 
-export const addNewTodo = (text, description, priority, date, duration, setTodos, language, setText) => {
-    text = removeEmojis(text).trim()
-    if (text.length >= 3) {
-
+export const addNewTodo = (name, description, priority, date, duration, notificationDate, setTodos, language, setText) => {
+    name = removeEmojis(name).trim()
+    if (name.length >= 3) {
+        const key = new Date().getTime();
+        saveItemData({key: key, description: description, date: date, duration: duration, notificationDate: notificationDate});
         setTodos(prevTodos => {
-            return [{key: new Date().getTime(), text: text, description: description, priority: priority, date: date, duration: duration}, ...prevTodos];
+            return [{key: key, name: name, priority: priority, notificationDate: notificationDate}, ...prevTodos];
         });
         changeText('', setText);
+
+        onDisplayNotification({
+            key: new Date().getTime(),
+            name: name,
+            priority: priority,
+            date: notificationDate
+        }, language).then(r => (''))
+
     } else {
-        ToastAndroid.show(getWords(language).alert, ToastAndroid.LONG);
+        ToastAndroid.show(getWords(language).alert_name_length, ToastAndroid.LONG);
     }
 };
 
@@ -51,6 +70,7 @@ export const finishTodo = (item, setTodos, setDone, setItemOverviewVisible) => {
     setTodos(prevTodos => {
         return prevTodos.filter(todos => todos.key !== item.key);
     });
+    notifee.cancelTriggerNotification(item.key + '-todo').then(r => ({r}));
 };
 
 export const deleteTodo = (key, setTodos, setItemOverviewVisible) => {
@@ -61,9 +81,23 @@ export const deleteTodo = (key, setTodos, setItemOverviewVisible) => {
         setTodos(prevTodos => {
             return prevTodos.filter(todos => todos.key !== key);
         })
+        deleteItemData(key);
     })
 };
 
+
+export const restoreToDo = (item, setTodos, setDone, setItemOverviewVisible, language) => {
+    setItemOverviewVisible(false);
+    addExistingTodo(item, setTodos);
+    setDone(prevDone => {
+        return prevDone.filter(done => done.key !== item.key);
+    });
+    /*onDisplayNotification({
+        key: item.key,
+        name: item.name,
+        priority: item.priority,
+    }, language).then(r => (''))*/
+}
 
 export const addDone = (item, setDone) => {
     setDone((prevDone) => {
@@ -81,6 +115,7 @@ export const deleteDone = (key, setDone, setItemOverviewVisible) => {
         });
     })
 };
+
 
 
 export const isToDo = (item, todos) => {
