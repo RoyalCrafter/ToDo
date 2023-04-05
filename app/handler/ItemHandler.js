@@ -1,56 +1,61 @@
 import React from "react";
 import {ToastAndroid} from "react-native";
-import {deleteItemData, getWords, saveItemData} from "./DataHandler";
+import {deleteItemData, getItemData, getWords, saveItemData} from "./DataHandler";
 import {onDisplayNotification} from "./NotificationHandler";
 import notifee from "@notifee/react-native";
 
-export const changeItem = (key, name, description, priority, date, duration, todos, notificationDate, setItemOverviewVisible, setValue, language) => {
+export const changeItem = (todos, key, name, description, priority, date, duration, notificationTimestamp, setItemOverviewVisible, setValue, language) => {
 
     const close = async () => {
         setItemOverviewVisible(false);
     }
     close().finally(async () => {
-        const change = async () => {
-            todos.forEach((item) => {
-                if (item.key === key) {
-                    if(item.duration !== 0 && new Date(item.date).getTime() !== 0) {
-                        notifee.cancelTriggerNotification(key + '-todo');
-                    }
-                    onDisplayNotification({
-                        key: new Date().getTime(),
-                        name: name,
-                        priority: priority,
-                        date: notificationDate
-                    }, language).then(r => (''))
-                    item.name = removeEmojis(name);
-                    item.priority = priority;
-                    saveItemData({key: key, description: description, date: date, duration: duration, notificationDate: notificationDate});
+        todos.forEach((item) => {
+            if (item.key === key) {
+                if(item.duration !== 0 && new Date(item.date).getTime() !== 0) {
+                    notifee.cancelTriggerNotification(key + '-todo');
                 }
-            });
-        }
-        change().finally(async () => {
-            setValue(new Date().getTime());
+                if(notificationTimestamp !== 0) {
+                    onDisplayNotification(
+                        {
+                            key: new Date().getTime(),
+                            name: name,
+                            priority: priority,
+                        },
+                        notificationTimestamp,
+                        language
+                    ).then(r => (''))
+                }
+                item.name = removeEmojis(name);
+                item.priority = priority;
+                saveItemData({key: key, description: description, date: date, duration: duration, notificationTimestamp: notificationTimestamp});
+            }
         });
     });
 };
 
 
-export const addNewTodo = (name, description, priority, date, duration, notificationDate, setTodos, language, setText) => {
+export const addNewTodo = (name, description, priority, date, duration, notificationTimestamp, setTodos, language, setText) => {
     name = removeEmojis(name).trim()
     if (name.length >= 3) {
         const key = new Date().getTime();
-        saveItemData({key: key, description: description, date: date, duration: duration, notificationDate: notificationDate});
+        saveItemData({key: key, description: description, date: date,/* duration: duration, */notificationTimestamp: notificationTimestamp});
         setTodos(prevTodos => {
-            return [{key: key, name: name, priority: priority, notificationDate: notificationDate}, ...prevTodos];
+            return [{key: key, name: name, priority: priority}, ...prevTodos];
         });
         changeText('', setText);
 
-        onDisplayNotification({
-            key: new Date().getTime(),
-            name: name,
-            priority: priority,
-            date: notificationDate
-        }, language).then(r => (''))
+        if(notificationTimestamp !== 0) {
+            onDisplayNotification(
+                {
+                    key: new Date().getTime(),
+                    name: name,
+                    priority: priority,
+                },
+                notificationTimestamp,
+                language
+            ).then(r => (''))
+        }
 
     } else {
         ToastAndroid.show(getWords(language).alert_name_length, ToastAndroid.LONG);
@@ -70,7 +75,9 @@ export const finishTodo = (item, setTodos, setDone, setItemOverviewVisible) => {
     setTodos(prevTodos => {
         return prevTodos.filter(todos => todos.key !== item.key);
     });
-    notifee.cancelTriggerNotification(item.key + '-todo').then(r => ({r}));
+    try {
+        notifee.cancelTriggerNotification(item.key + '-todo').then(r => ({r}));
+    } catch (e) {}
 };
 
 export const deleteTodo = (key, setTodos, setItemOverviewVisible) => {
@@ -83,6 +90,9 @@ export const deleteTodo = (key, setTodos, setItemOverviewVisible) => {
         })
         deleteItemData(key);
     })
+    try {
+        notifee.cancelTriggerNotification(key + '-todo').then(r => ({r}));
+    } catch (e) {}
 };
 
 
@@ -92,11 +102,17 @@ export const restoreToDo = (item, setTodos, setDone, setItemOverviewVisible, lan
     setDone(prevDone => {
         return prevDone.filter(done => done.key !== item.key);
     });
-    /*onDisplayNotification({
-        key: item.key,
-        name: item.name,
-        priority: item.priority,
-    }, language).then(r => (''))*/
+    if(getItemData(item.key).notificationTimestamp !== 0) {
+        onDisplayNotification(
+            {
+                key: new Date().getTime(),
+                name: item.name,
+                priority: item.priority,
+            },
+            getItemData(item.key).notificationTimestamp,
+            language
+        ).then(r => (''))
+    }
 }
 
 export const addDone = (item, setDone) => {

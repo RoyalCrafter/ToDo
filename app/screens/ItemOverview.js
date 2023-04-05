@@ -8,6 +8,7 @@ import {getItemData, getWords} from "../handler/DataHandler";
 import EditOverview from "./EditOverview";
 import {deleteDone, deleteTodo, finishTodo, getNonTransparentPriorityColor, restoreToDo} from "../handler/ItemHandler";
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import NotificationItem from "../items/NotificationItem";
 
 
 export default function ItemOverview({darkMode, language, item, setDone, setItemOverviewVisible, setTodos, setValue, todos, isEditing, setIsEditing}) {
@@ -17,7 +18,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
     const [description, setDescription] = useState(expandedItem.description);
     const [date, setDate] = useState(expandedItem.date);
     const [duration, setDuration] = useState(expandedItem.duration);
-    const [notificationDate, setNotificationDate] = useState(expandedItem.notificationDate);
+    const [notificationTimestamp, setNotificationTimestamp] = useState(expandedItem.notificationTimestamp);
 
     const getDate = () => {
         return new Date(date).toLocaleDateString();
@@ -52,29 +53,28 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
 
 
     const getDescriptionContent = () => {
-        console.log(name)
         if(description === ''){
             return(<></>);
         } else {
             return (
                 <>
                     <Text
-                        style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).description}</Text>
-                    <Text style={darkMode ? darkStyles.text : lightStyles.text}>{description}</Text>
+                        style={styles(darkMode).headline}>{getWords(language).description}</Text>
+                    <Text style={styles(darkMode).text}>{description}</Text>
                 </>
             );
         }
     }
 
     const getDateContent = () => {
-        if(new Date(date).getTime() < Date.now()){
+        if(new Date(date).getTime() === 0){
             return(<></>);
         } else {
             return (
                 <>
-                    <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).date}</Text>
+                    <Text style={styles(darkMode).headline}>{getWords(language).date}</Text>
                     <View>
-                        <Text style={darkMode ? [darkStyles.date] : lightStyles.date}>{getDate()}</Text>
+                        <Text style={styles(darkMode).date}>{getDate()}</Text>
                     </View>
                 </>
             );
@@ -87,10 +87,26 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
         } else {
             return (
                 <>
-                    <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).duration}</Text>
+                    <Text style={styles(darkMode).headline}>{getWords(language).duration}</Text>
                     <View>
-                        <Text style={darkMode ? darkStyles.text : lightStyles.text}>{getDuration()}</Text>
+                        <Text style={styles(darkMode).text}>{getDuration()}</Text>
                     </View>
+                </>
+            );
+        }
+    }
+
+    const getNotificationContent = () => {
+        if(notificationTimestamp === 0){
+            return(<></>);
+        } else {
+            return (
+                <>
+                    <Text style={styles(darkMode).headline}>{getWords(language).notification}</Text>
+                    <NotificationItem
+                        darkMode={darkMode}
+                        timestamp={notificationTimestamp}
+                    />
                 </>
             );
         }
@@ -103,6 +119,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                 <EditOverview
                     darkMode={darkMode}
                     language={language}
+                    isEditing={isEditing}
                     setIsEditing={setIsEditing}
                     item={item}
                     expandedItem={expandedItem}
@@ -114,6 +131,7 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                     name={name}
                     description={description}
                     priority={priority}
+                    notificationTimestamp={notificationTimestamp}
                     date={date}
                     duration={duration}
                     setName={setName}
@@ -121,22 +139,23 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                     setPriority={setPriority}
                     setDate={setDate}
                     setDuration={setDuration}
+                    setNotificationTimestamp={setNotificationTimestamp}
                 />
                 :
                 <>
-                    <ScrollView style={styles.scrollView} contentContainerStyle={{alignItems: 'center'}} showsVerticalScrollIndicator={false}>
+                    <ScrollView style={styles(darkMode).scrollView} contentContainerStyle={{alignItems: 'center'}} showsVerticalScrollIndicator={false}>
                         <>
-                            <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).name}</Text>
-                            <Text style={darkMode ? darkStyles.text : lightStyles.text}>{item.name}</Text>
+                            <Text style={styles(darkMode).headline}>{getWords(language).name}</Text>
+                            <Text style={styles(darkMode).text}>{item.name}</Text>
                         </>
                         <>
-                            <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).priority}</Text>
+                            <Text style={styles(darkMode).headline}>{getWords(language).priority}</Text>
                             <SegmentedControl
                                 tintColor={getNonTransparentPriorityColor(item)}
                                 backgroundColor={darkMode ? darkColors.modal : lightColors.modal}
                                 fontStyle={{color: darkMode ? darkColors.text : lightColors.text}}
                                 activeFontStyle={{color: lightColors.text}}
-                                style={styles.controlTab}
+                                style={styles(darkMode).controlTab}
                                 values={[getWords(language).low, getWords(language).medium, getWords(language).high]}
                                 selectedIndex={priority}
                             />
@@ -144,26 +163,30 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
                         {getDescriptionContent()}
                         {getDateContent()}
                         {/*{getDurationContent()}*/}
+                        {getNotificationContent()}
                         <View style={{height: 20}}/>
                     </ScrollView>
                     {item.isToDo ?
-                        <ToDoButtons
-                            darkMode={darkMode}
-                            setIsEditing={setIsEditing}
-                            item={item}
-                            setTodos={setTodos}
-                            setItemOverviewVisible={setItemOverviewVisible}
-                            setDone={setDone}
-                        />
+                        <View style={styles(darkMode).buttonView}>
+                            <TouchableOpacity style={styles(darkMode).todoButton} onPress={() => deleteTodo(item.key, setTodos, setItemOverviewVisible)}>
+                                <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles(darkMode).todoButton} onPress={() => setIsEditing(true)}>
+                                <MaterialIcons name="edit" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles(darkMode).todoButton} onPress={() => finishTodo(item, setTodos, setDone, setItemOverviewVisible)}>
+                                <Octicons name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                            </TouchableOpacity>
+                        </View>
                         :
-                        <DoneButtons
-                            item={item}
-                            darkMode={darkMode}
-                            setTodos={setTodos}
-                            setDone={setDone}
-                            setItemOverviewVisible={setItemOverviewVisible}
-                            language={language}
-                        />
+                        <View style={styles(darkMode).buttonView}>
+                            <TouchableOpacity style={styles(darkMode).doneButton} onPress={() => deleteDone(item.key, setDone, setItemOverviewVisible)}>
+                                <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles(darkMode).doneButton} onPress={() => restoreToDo(item, setTodos, setDone, setItemOverviewVisible, language)}>
+                                <MaterialCommunityIcons name="backup-restore" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                            </TouchableOpacity>
+                        </View>
                     }
                 </>
             }
@@ -172,47 +195,9 @@ export default function ItemOverview({darkMode, language, item, setDone, setItem
 }
 
 
-function ToDoButtons({darkMode, setIsEditing, item, setTodos, setDone, setItemOverviewVisible}) {
-    return(
-        <View>
-            <View style={styles.buttonView}>
-                    <TouchableOpacity style={styles.todoButton} onPress={() => deleteTodo(item.key, setTodos, setItemOverviewVisible)}>
-                        <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.todoButton} onPress={() => setIsEditing(true)}>
-                        <MaterialIcons name="edit" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.todoButton} onPress={() => finishTodo(item, setTodos, setDone, setItemOverviewVisible)}>
-                        <Octicons name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-            </View>
-        </View>
-    );
-}
-function DoneButtons({darkMode, item, setTodos, setDone, setItemOverviewVisible, language}) {
-    return(
-        <View>
-            <View style={styles.buttonView}>
-                <View style={styles.buttonView}>
-                    <TouchableOpacity style={styles.doneButton} onPress={() => deleteDone(item.key, setDone, setItemOverviewVisible)}>
-                        <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.buttonView}>
-                    <TouchableOpacity style={styles.doneButton} onPress={() => restoreToDo(item, setTodos, setDone, setItemOverviewVisible, language)}>
-                        <MaterialCommunityIcons name="backup-restore" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-    );
-}
-
-
-
 const windowWidth = Dimensions.get('window').width;
 
-const styles = StyleSheet.create({
+const styles = (darkMode) => StyleSheet.create({
     buttonView:{
         flexDirection: 'row',
         alignItems: 'center',
@@ -269,14 +254,11 @@ const styles = StyleSheet.create({
         height: 35,
         width: '75%',
     },
-});
-
-const lightStyles = StyleSheet.create({
     headline:{
         marginTop: 35,
         paddingHorizontal: 8,
         paddingVertical: 6,
-        color: lightColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
         fontSize: 18,
         fontWeight: 'bold',
     },
@@ -284,7 +266,7 @@ const lightStyles = StyleSheet.create({
         marginTop: 25,
         paddingHorizontal: 8,
         paddingVertical: 6,
-        color: lightColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
         fontSize: 14,
         width: '75%',
         marginBottom: 1,
@@ -293,36 +275,7 @@ const lightStyles = StyleSheet.create({
         marginTop: 25,
         paddingHorizontal: 8,
         paddingVertical: 6,
-        color: lightColors.text,
-        fontSize: 15,
-        width: '75%',
-        alignSelf: 'center',
-    },
-});
-
-const darkStyles = StyleSheet.create({
-    headline:{
-        marginTop: 35,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        color: darkColors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    text: {
-        marginTop: 25,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        color: darkColors.text,
-        fontSize: 14,
-        width: '75%',
-        marginBottom: 1,
-    },
-    date: {
-        marginTop: 25,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        color: darkColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
         fontSize: 15,
         width: '75%',
         alignSelf: 'center',

@@ -1,20 +1,23 @@
 import React from "react";
 import {StyleSheet, View, Text} from "react-native";
-import {darkColors} from "../constants/ColorThemes";
+import {darkColors, lightColors} from "../constants/ColorThemes";
 
-export default function NotificationItem({darkMode, date}) {
+export default function NotificationItem({darkMode, timestamp}) {
     return (
-        <View style={styles.notificationItem}>
-            <Text>{new Date(date).toLocaleString()}</Text>
+        <View style={styles(darkMode).notificationItem}>
+            <Text style={styles(darkMode).dateText}>{new Date(timestamp).toLocaleString()}</Text>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const styles = (darkMode) => StyleSheet.create({
     notificationItem: {
-        backgroundColor: darkColors.inputFieldBorder,
+        backgroundColor: darkMode ? darkColors.modal : lightColors.inputFieldBorder,
         padding: 10,
         margin: 10,
         borderRadius: 10,
     },
+    dateText:{
+        color: darkMode ? darkColors.text : lightColors.text,
+    }
 })

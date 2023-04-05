@@ -19,12 +19,15 @@ import Octicons from "react-native-vector-icons/Octicons";
 import DatePicker from 'react-native-date-picker'
 import NotificationItem from "../items/NotificationItem";
 
-export default function EditOverview({darkMode, language, setIsEditing, item, expandedItem, setItemOverviewVisible, todos, setValue, isNewItem, setTodos, name, setName, description, setDescription, priority, setPriority, date, setDate, duration, setDuration, notifications, setNotifications}) {
+export default function EditOverview({darkMode, language, isEditing, setIsEditing, item, expandedItem, setItemOverviewVisible, todos, setValue, isNewItem, setTodos, name, setName, description, setDescription, priority, setPriority, date, setDate, duration, setDuration, notificationTimestamp, setNotificationTimestamp}) {
     const [addNotificationDateModalShown, setAddNotificationDateModalShown] = useState(false);
-    const [notificationDate, setNotificationDate] = useState(new Date(date));
+    const [descriptionEnabled, setDescriptionEnabled] = useState(description !== '');
+    const [dateEnabled, setDateEnabled] = useState(new Date(date).getTime() !== 0);
+    const [durationEnabled, setDurationEnabled] = useState(false);
+    const [notificationEnabled, setNotificationEnabled] = useState(notificationTimestamp !== 0);
 
     const notificationDateHandler = async (date) => {
-        await setNotificationDate(new Date(date));
+        await setNotificationTimestamp(new Date(date).getTime());
     }
 
     const getDate = () => {
@@ -36,30 +39,26 @@ export default function EditOverview({darkMode, language, setIsEditing, item, ex
     return(
         <View>
 
-            <ScrollView style={styles.scrollView} contentContainerStyle={{alignItems: 'center',}} showsVerticalScrollIndicator={false}>
+            <ScrollView style={styles(darkMode).scrollView} contentContainerStyle={{alignItems: 'center',}} showsVerticalScrollIndicator={false}>
 
                 <>
-                <TouchableOpacity onLongPress={() => setName('')}>
-                    <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).name}</Text>
-                </TouchableOpacity>
-                <TextInput
-                    style={darkMode ? darkStyles.input : lightStyles.input}
-                    value={name}
-                    onChangeText={(name) => changeText(name, setName)}
-                    placeholder={getWords(language).name}
-                    placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
-                />
+                    <Text style={styles(darkMode).headline}>{getWords(language).name}</Text>
+                    <TextInput
+                        style={styles(darkMode).input}
+                        value={name}
+                        onChangeText={(name) => changeText(name, setName)}
+                        placeholder={getWords(language).name}
+                        placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
+                    />
                 </>
                 <>
-                    <TouchableOpacity onLongPress={() => setPriority(0)}>
-                        <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).priority}</Text>
-                    </TouchableOpacity>
+                    <Text style={styles(darkMode).headline}>{getWords(language).priority}</Text>
                     <SegmentedControl
                         tintColor={lightColors.button}
                         backgroundColor={darkMode ? darkColors.modal : lightColors.modal}
                         fontStyle={{color: darkMode ? darkColors.text : lightColors.text}}
                         activeFontStyle={{color: lightColors.text}}
-                        style={styles.controlTab}
+                        style={styles(darkMode).controlTab}
                         values={[getWords(language).low, getWords(language).medium, getWords(language).high]}
                         selectedIndex={priority}
                         onChange={(event) => {
@@ -68,59 +67,76 @@ export default function EditOverview({darkMode, language, setIsEditing, item, ex
                     />
                 </>
                 <>
-                    <TouchableOpacity onLongPress={() => setDescription('')}>
-                        <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).description}</Text>
+                    <TouchableOpacity onPress={() => setDescriptionEnabled(prevState => !prevState)}>
+                        <Text style={styles(darkMode).headline}>{getWords(language).description}</Text>
                     </TouchableOpacity>
-                    <TextInput
-                        style={darkMode ? darkStyles.input : lightStyles.input}
-                        value={description}
-                        onChangeText={(description) => changeText(description, setDescription)}
-                        multiline={true}
-                        placeholder={getWords(language).description}
-                        placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
-                    />
-                </>
-                <>
-                    <TouchableOpacity onLongPress={() => setDate(new Date(0))}>
-                        <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).date}</Text>
-                    </TouchableOpacity>
-                    <DatePicker
-                        date={new Date(date)}
-                        onDateChange={setDate}
-                        minimumDate={new Date()}
-                        mode={"date"}
-                        locale={language}
-                        androidVariant={"nativeAndroid"}
-                        textColor={darkMode ? darkColors.text : lightColors.text}
-                    />
-                </>
-                <>
-                    <Text style={darkMode ? darkStyles.headline : lightStyles.headline}>{getWords(language).notifications}</Text>
-                    <TouchableOpacity onPress={() => setAddNotificationDateModalShown(true)}>
-                        <NotificationItem
-                            darkMode={darkMode}
-                            date={notificationDate}
+                    {descriptionEnabled ?
+                        <TextInput
+                            style={styles(darkMode).input}
+                            value={description}
+                            onChangeText={(description) => changeText(description, setDescription)}
+                            multiline={true}
+                            placeholder={getWords(language).description}
+                            placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
                         />
+                        :
+                        <View/>
+                    }
+                </>
+                <>
+                    <TouchableOpacity onPress={() => setDateEnabled(prevState => !prevState)}>
+                        <Text style={styles(darkMode).headline}>{getWords(language).date}</Text>
                     </TouchableOpacity>
-                    <DatePicker
-                        modal
-                        open={addNotificationDateModalShown}
-                        date={new Date(notificationDate)}
-                        minimumDate={new Date()}
-                        mode={"datetime"}
-                        locale={language}
-                        androidVariant={"nativeAndroid"}
-                        title={getWords(language).date}
-                        confirmText={getWords(language).confirm}
-                        cancelText={getWords(language).cancel}
-                        onConfirm={async (date) => {
-                            await notificationDateHandler(date)
-                            setAddNotificationDateModalShown(false)
-                        }}
-                        onCancel={() => {
-                            setAddNotificationDateModalShown(false)
-                        }}
-                    />
+                    {dateEnabled ?
+                        <DatePicker
+                            date={new Date(date)}
+                            onDateChange={setDate}
+                            minimumDate={new Date()}
+                            mode={"date"}
+                            locale={language}
+                            androidVariant={"nativeAndroid"}
+                            textColor={darkMode ? darkColors.text : lightColors.text}
+                        />
+                        :
+                        <View/>
+                    }
+                </>
+                <>
+
+                    <TouchableOpacity onPress={() => setNotificationEnabled(prevState => !prevState)}>
+                        <Text style={styles(darkMode).headline}>{getWords(language).notification}</Text>
+                    </TouchableOpacity>
+                    {notificationEnabled ?
+                        <>
+                            <TouchableOpacity onPress={() => setAddNotificationDateModalShown(true)}>
+                                <NotificationItem
+                                    darkMode={darkMode}
+                                    timestamp={notificationTimestamp === 0 ? new Date() : new Date(notificationTimestamp)}
+                                />
+                            </TouchableOpacity>
+                            <DatePicker
+                                modal
+                                open={addNotificationDateModalShown}
+                                date={new Date(notificationTimestamp)}
+                                minimumDate={new Date()}
+                                mode={"datetime"}
+                                locale={language}
+                                androidVariant={"nativeAndroid"}
+                                title={getWords(language).date}
+                                confirmText={getWords(language).confirm}
+                                cancelText={getWords(language).cancel}
+                                onConfirm={async (date) => {
+                                    await notificationDateHandler(date)
+                                    setAddNotificationDateModalShown(false)
+                                }}
+                                onCancel={() => {
+                                    setAddNotificationDateModalShown(false)
+                                }}
+                            />
+                        </>
+                        :
+                        <View/>
+                    }
                 </>
                 {/*<>
                     <TouchableOpacity onLongPress={() => {setDuration(0); setDurationInput('')}}>
@@ -140,8 +156,10 @@ export default function EditOverview({darkMode, language, setIsEditing, item, ex
 
 
 
-                <View style={styles.buttonView}>
-                    <TouchableOpacity style={styles.editButton} onPress={() => {
+            <View style={styles(darkMode).buttonView}>
+                <TouchableOpacity
+                    style={styles(darkMode).editButton}
+                    onPress={() => {
                         setIsEditing(false);
                         if(isNewItem) {
                             setName('')
@@ -149,40 +167,42 @@ export default function EditOverview({darkMode, language, setIsEditing, item, ex
                             setPriority(0)
                             setDate(new Date(0))
                             setDuration(0)
-                            setNotificationDate(new Date(0))
+                            setNotificationTimestamp(0)
                         } else{
                             setName(item.name)
                             setDescription(expandedItem.description)
                             setPriority(item.priority)
                             setDate(expandedItem.date)
                             setDuration(expandedItem.duration)
-                            setNotificationDate(expandedItem.notificationDate)
+                            setNotificationTimestamp(expandedItem.notificationTimestamp)
+                        }
+                }}>
+                    <Ionicons name="close" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles(darkMode).editButton}
+                    onPress={() => {
+                        if (name.length >= 3) {
+                            setIsEditing(false);
+                            if(isNewItem){
+                                addNewTodo(name, descriptionEnabled ? description: '', priority, dateEnabled ? getDate() : new Date(0), /*getDuration()*/0, notificationEnabled ? notificationTimestamp : 0, setTodos, language, setDummy)
+                                setName('')
+                                setDescription('')
+                                setPriority(0)
+                                setDate(new Date(0))
+                                setDuration(0)
+                                setNotificationTimestamp(0)
+                            } else {
+                                changeItem(todos, item.key, name, description.trim().length === 0 || !descriptionEnabled ? '' : description, priority, dateEnabled ? getDate() : new Date(0), /*getDuration()*/0, notificationEnabled ? notificationTimestamp : 0, setItemOverviewVisible, setValue, language);
+                                setValue(prevValue => prevValue + 1)
+                            }
+                        } else {
+                            ToastAndroid.show(getWords(language).alert_name_length, 700);
                         }
                     }}>
-                        <Ionicons name="close" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => {
-                            if (name.length >= 3) {
-                                setIsEditing(false);
-                                if(isNewItem){
-                                    addNewTodo(name, description, priority, getDate(), /*getDuration()*/0, notificationDate, setTodos, language, setDummy)
-                                    setName('')
-                                    setDescription('')
-                                    setPriority(0)
-                                    setDate(new Date(0))
-                                    setDuration(0)
-                                } else {
-                                    changeItem(item.key, name, description.trim().length === 0 ? '' : description, priority, getDate(), /*getDuration()*/0, notificationDate, todos, setItemOverviewVisible, setValue, language);
-                                }
-                            } else {
-                                ToastAndroid.show(getWords(language).alert, 700);
-                            }
-                        }}>
-                        <Octicons name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
-                    </TouchableOpacity>
-                </View>
+                    <Octicons name="check" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
@@ -191,7 +211,7 @@ export default function EditOverview({darkMode, language, setIsEditing, item, ex
 
 const windowWidth = Dimensions.get('window').width;
 
-const styles = StyleSheet.create({
+const styles = (darkMode) =>  StyleSheet.create({
     buttonView:{
         flexDirection: 'row',
         alignItems: 'center',
@@ -236,14 +256,11 @@ const styles = StyleSheet.create({
         height: 35,
         width: '75%',
     },
-});
-
-const lightStyles = StyleSheet.create({
     headline:{
         marginTop: 35,
         paddingHorizontal: 8,
         paddingVertical: 6,
-        color: lightColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
         fontSize: 18,
         fontWeight: 'bold',
     },
@@ -252,8 +269,8 @@ const lightStyles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 2,
         borderBottomWidth: 1,
-        borderBottomColor: lightColors.inputFieldBorder,
-        color: lightColors.text,
+        borderBottomColor: darkMode ? darkColors.inputFieldBorder : lightColors.inputFieldBorder,
+        color: darkMode ? darkColors.text : lightColors.text,
         width: '75%',
         fontSize: 14,
     },
@@ -261,42 +278,10 @@ const lightStyles = StyleSheet.create({
         marginTop: 35,
         paddingHorizontal: 8,
         paddingVertical: 6,
-        color: lightColors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-        backgroundColor: lightColors.button,
-        borderRadius: 10,
-    },
-});
-
-
-
-const darkStyles = StyleSheet.create({
-    headline:{
-        marginTop: 35,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
         color: darkColors.text,
         fontSize: 18,
         fontWeight: 'bold',
-    },
-    input: {
-        marginTop: 24,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderBottomWidth: 1,
-        borderBottomColor: darkColors.inputFieldBorder,
-        color: darkColors.text,
-        width: '75%',
-    },
-    openNotificationModal:{
-        marginTop: 35,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        color: darkColors.text,
-        fontSize: 18,
-        fontWeight: 'bold',
-        backgroundColor: darkColors.button,
+        backgroundColor: darkMode ? darkColors.button : lightColors.button,
         borderRadius: 10,
         alignSelf: 'center',
         width: 100,

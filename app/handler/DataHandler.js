@@ -40,6 +40,7 @@ export const getData = (setTodos, setDone, setDarkMode, setAmoled, setLanguage) 
         if(languageValue !== null){
             setLanguage(JSON.parse(languageValue));
         }
+        storage.delete('converted');
     } catch(e){
         console.log('Data access error. Maybe it´s the first time the app is open on this device.');
     }
@@ -65,33 +66,6 @@ export const deleteItemData = (key) => {
 }
 
 
-export const convertDataFormat = async (setTodos, setDone, setDarkMode, setAmoled, setLanguage) => {
-    const todosValue = JSON.parse(storage.getString(todosKey));
-    const doneValue = JSON.parse(storage.getString(doneKey));
-    const darkModeValue = JSON.parse(storage.getString(darkModeKey));
-    const amoledValue = JSON.parse(storage.getString(amoledKey));
-    const languageValue = JSON.parse(storage.getString(languageKey));
-
-    const [tempTodos, setTempTodos] = useState([]);
-    const [tempDone, setTempDone] = useState([]);
-
-    await todosValue.forEach((item) => {
-        saveItemData({key: item.key, description: item.description, date: item.date, duration: item.duration})
-        setTempTodos(prevTodos => {
-            return [{key: item.key, name: item.text, priority: item.priority}, ...prevTodos]
-        })
-    })
-
-    await doneValue.forEach((item) => {
-        saveItemData({key: item.key, description: item.description, date: item.date, duration: item.duration})
-        setTempDone(prevDone => {
-            return [{key: item.key, name: item.text, priority: item.priority}, ...prevDone]
-        })
-    })
-
-    await saveData(tempTodos, tempDone, darkModeValue, amoledValue, languageValue)
-    await getData(setTodos, setDone, setDarkMode, setAmoled, setLanguage)
-}
 
 export const getWords = (language) => {
     if(language === 'de'){

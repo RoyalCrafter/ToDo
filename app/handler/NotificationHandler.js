@@ -1,9 +1,10 @@
 import React from "react";
-import notifee, {AndroidCategory, AndroidImportance, AndroidStyle, TriggerType} from '@notifee/react-native';
-import {getItemData, getWords} from "./DataHandler";
+import notifee, {AndroidStyle, TriggerType} from '@notifee/react-native';
+import {getWords} from "./DataHandler";
 import {TimestampTrigger} from "@notifee/react-native";
+import {ToastAndroid} from "react-native";
 
-export async function onDisplayNotification(item, date, language) {
+export async function onDisplayNotification(item, timestamp, language) {
     await notifee.requestPermission()
 
     const channelId = await notifee.createChannel({
@@ -21,29 +22,31 @@ export async function onDisplayNotification(item, date, language) {
         priority = getWords(language).high
     }
 
-
+    if(timestamp < Date.now()){
+        ToastAndroid.show(getWords(language).alert_notification_to_late, ToastAndroid.LONG);
+        return;
+    }
 
     const trigger: TimestampTrigger = {
         type: TriggerType.TIMESTAMP,
-        timestamp: new Date(date).getTime(),
+        timestamp: timestamp,
     };
 
     await notifee.createTriggerNotification(
         {
             id: item.key + '-todo',
             title: 'Aufgabe fällig',
-            body: item.text + ', ' + priority,
+            body: item.name,
             android: {
                 channelId,
                 showTimestamp: true,
                 style: {
                     type: AndroidStyle.INBOX,
-                    lines: [item.text, 'Priorität: ' + priority],
+                    lines: [item.name, 'Priorität: ' + priority],
                 },
             },
         },
         trigger,
     );
-    console.log('created trigger wait time: ' + trigger.timestamp + ' ' + Date.now() + ' ' + item.duration + ' ' + item.date)
 
 }

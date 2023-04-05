@@ -26,12 +26,13 @@ export default function Header({changeMode, showSettings, toggleAmoled, darkMode
     }
 
     return(
-        <View style={darkMode ? (amoled ? darkStyles.headerAmoled : darkStyles.header) : lightStyles.header}>
-            <Text style={darkMode ? darkStyles.title : lightStyles.title}>{getTitle()}</Text>
+        <View style={styles(darkMode, amoled).header}>
+            <Text style={styles(darkMode, amoled).title}>{getTitle()}</Text>
             <DarkModeToggle
                 changeMode={() => changeMode()}
                 darkMode={darkMode}
                 toggleAmoled={toggleAmoled}
+                amoled={amoled}
             />
             <TouchableWithoutFeedback
                 onPress={isEditing ? () => {setIsEditing(false)} : itemOverviewVisible ? () => {setItemOverviewVisible(false); setIsEditing(false)} : () => {showSettings()}}
@@ -40,7 +41,7 @@ export default function Header({changeMode, showSettings, toggleAmoled, darkMode
                     name={settingsVisible || itemOverviewVisible || isEditing ? 'chevron-back' : 'settings-outline'}
                     size={28}
                     color={darkMode ? darkColors.icon : lightColors.icon}
-                    style={darkMode ? darkStyles.menu : lightStyles.menu}
+                    style={styles(darkMode, amoled).menu}
                 />
             </TouchableWithoutFeedback>
         </View>
@@ -49,20 +50,12 @@ export default function Header({changeMode, showSettings, toggleAmoled, darkMode
 
 
 
-function DarkModeToggle({darkMode, changeMode, toggleAmoled}){
-    if(darkMode) {
-        return (
-            <TouchableWithoutFeedback onPress={() => changeMode()} onLongPress={() => toggleAmoled()}>
-                <Feather name="sun" size={24} color={darkColors.icon} style={darkStyles.button}/>
-            </TouchableWithoutFeedback>
-        );
-    } else{
-        return(
-            <TouchableWithoutFeedback onPress={() => changeMode()} onLongPress={() => toggleAmoled()}>
-                <FontAwesome5 name="moon" size={24} color={lightColors.icon} style={lightStyles.button}/>
-            </TouchableWithoutFeedback>
-        );
-    }
+function DarkModeToggle({darkMode, changeMode, toggleAmoled, amoled}){
+    return (
+        <TouchableWithoutFeedback onPress={() => changeMode()} onLongPress={() => toggleAmoled()}>
+            <Feather name="sun" size={24} color={darkMode ? darkColors.icon : lightColors.icon} style={styles(darkMode, amoled).button}/>
+        </TouchableWithoutFeedback>
+    );
 }
 
 Header.propsTypes = {
@@ -71,61 +64,22 @@ Header.propsTypes = {
 }
 
 
-const lightStyles = StyleSheet.create({
+const styles = (darkMode, amoled) =>  StyleSheet.create({
     header:{
         height: 45,
         maxHeight: 45,
         minHeight: 45,
         paddingTop: 50,
-        backgroundColor: lightColors.foreground,
+        backgroundColor: darkMode ? amoled ? darkColors.amoled : darkColors.background : lightColors.foreground,
         justifyContent: 'center',
+        borderColor: darkColors.foreground,
+        borderBottomWidth: 1,
     },
     title: {
         textAlign: 'center',
-        color: lightColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
         fontSize: 20,
         fontFamily: 'Roboto',
-        fontWeight: 'bold',
-        alignSelf: 'center',
-        position: 'absolute',
-    },
-    button:{
-        alignSelf: 'flex-end',
-        position: 'absolute',
-        right: 15,
-    },
-    menu:{
-        alignSelf: 'flex-end',
-        position: 'absolute',
-        left: 15,
-    },
-});
-
-const darkStyles = StyleSheet.create({
-    header:{
-        height: 45,
-        maxHeight: 45,
-        minHeight: 45,
-        paddingTop: 50,
-        backgroundColor: darkColors.header,
-        justifyContent: 'center',
-        borderColor: darkColors.foreground,
-        borderBottomWidth: 1,
-    },
-    headerAmoled:{
-        height: 45,
-        maxHeight: 45,
-        minHeight: 45,
-        paddingTop: 50,
-        backgroundColor: darkColors.amoled,
-        justifyContent: 'center',
-        borderColor: darkColors.foreground,
-        borderBottomWidth: 1,
-    },
-    title: {
-        textAlign: 'center',
-        color: darkColors.text,
-        fontSize: 20,
         fontWeight: 'bold',
         alignSelf: 'center',
         position: 'absolute',

@@ -9,12 +9,12 @@ export default function DoneItem({item, pressHandler, darkMode, showCurrentItem}
 
     return (
         <TouchableOpacity onPress={() => showCurrentItem(item)}>
-            <View style={darkMode ? styles.itemDarkMode : styles.itemLightMode}>
-                <View style={styles.priorityView}>
-                    <View style={[styles.priority, {backgroundColor: getPriorityColor(item)}]}/>
+            <View style={styles(darkMode, item).item}>
+                <View style={styles(darkMode, item).priorityView}>
+                    <View style={styles(darkMode, item).priority}/>
                 </View>
-                <Text style={darkMode ? styles.textDarkMode : styles.textLightMode}>{item.name}</Text>
-                <TouchableOpacity style={styles.touchable} onPress={() => pressHandler(item.key, item.name)}>
+                <Text style={styles(darkMode, item).text}>{item.name}</Text>
+                <TouchableOpacity style={styles(darkMode, item).touchable} onPress={() => pressHandler(item.key, item.name)}>
                     <MaterialCommunityIcons name="delete-outline" size={24} color={darkMode ? darkColors.icon : lightColors.icon}/>
                 </TouchableOpacity>
             </View>
@@ -22,21 +22,10 @@ export default function DoneItem({item, pressHandler, darkMode, showCurrentItem}
     );
 }
 
-const styles = StyleSheet.create({
-    itemLightMode: {
+const styles = (darkMode, item) => StyleSheet.create({
+    item:{
         padding: 10,
-        borderColor: lightColors.itemBorder,
-        borderWidth: 1,
-        borderStyle: 'dashed',
-        borderRadius: 10,
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    itemDarkMode:{
-        padding: 10,
-        borderColor: darkColors.itemBorder,
+        borderColor: darkMode ? darkColors.itemBorder : lightColors.itemBorder,
         borderWidth: 1,
         borderStyle: 'dashed',
         borderRadius: 10,
@@ -55,16 +44,12 @@ const styles = StyleSheet.create({
         flex: 1,
         width: 6,
         borderRadius: 10,
+        backgroundColor: getPriorityColor(item),
     },
-    textLightMode:{
+    text:{
         flex: 9,
         paddingLeft: 6,
-        color: lightColors.text,
-    },
-    textDarkMode:{
-        flex: 9,
-        paddingLeft: 6,
-        color: darkColors.text,
+        color: darkMode ? darkColors.text : lightColors.text,
     },
     touchable:{
         padding: 6,

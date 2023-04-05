@@ -8,80 +8,44 @@ import {onDisplayNotification} from "../handler/NotificationHandler";
 export default function AddTodo({darkMode, language, setTodos, setIsEditing, name, setName}) {
 
         return (
-            <View >
+            <View>
                 <TextInput
-                    style={darkMode ? darkStyles.input : lightStyles.input}
+                    style={styles(darkMode).input}
                     placeholder={getWords(language).newTodo}
                     placeholderTextColor={darkMode ? darkColors.placeHolderText : lightColors.placeHolderText}
                     value={name}
                     onChangeText={(name) => changeText(name, setName)}
                 />
-                    <TouchableOpacity
-                        onPress={() => addNewTodo(name, '', 0, new Date(0), 0, setTodos, language, setName)}
-                        onLongPress={() => setIsEditing(true)}
-                        style={styles.button}
-                    >
-                        <View>
-                            <Text style={darkMode ? darkStyles.buttonText : lightStyles.buttonText}>{getWords(language).addTodo}</Text>
-                        </View>
-                    </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => addNewTodo(name, '', 0, new Date(0), 0, 0, setTodos, language, setName)}
+                    onLongPress={() => setIsEditing(true)}
+                    style={styles(darkMode).button}
+                >
+                    <View>
+                        <Text style={styles(darkMode).buttonText}>{getWords(language).addTodo}</Text>
+                    </View>
+                </TouchableOpacity>
             </View>
         );
 }
 
-const styles = StyleSheet.create({
+const styles = (darkMode) => StyleSheet.create({
+    buttonText:{
+        fontSize: 16,
+        color: darkMode ? darkColors.text : lightColors.text,
+    },
+    input: {
+        marginBottom: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderBottomWidth: 1,
+        borderBottomColor: darkMode ? darkColors.inputFieldBorder : lightColors.inputFieldBorder,
+        color: darkMode ? darkColors.text : lightColors.text,
+    },
     button:{
         backgroundColor: lightColors.button,
         padding: 8,
         alignItems: 'center',
         borderRadius: 6,
-    },
-});
-
-const darkStyles = StyleSheet.create({
-    buttonText:{
-        fontSize: 16,
-        color: darkColors.text,
-    },
-    input: {
-        marginBottom: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderBottomWidth: 1,
-        borderBottomColor: darkColors.inputFieldBorder,
-        color: darkColors.text,
-    },
-    buttonShadow:{
-        shadowColor: darkColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.55,
-        shadowRadius: 8,
-    },
-});
-
-const lightStyles = StyleSheet.create({
-    buttonText:{
-        fontSize: 16,
-        color: lightColors.text,
-    },
-    input: {
-        marginBottom: 10,
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderBottomWidth: 1,
-        borderBottomColor: lightColors.inputFieldBorder,
-        color: lightColors.text,
-    },
-    buttonShadow:{
-        shadowColor: lightColors.shadow,
-        shadowOffset: {
-            width: 0,
-            height: 0,
-        },
-        shadowOpacity: 0.3,
-        shadowRadius: 2,
     },
 });

@@ -15,6 +15,7 @@
     "@notifee/react-native": "^7.4.0",
     "@react-native-clipboard/clipboard": "^1.11.1",
     "@react-native-segmented-control/segmented-control": "^2.4.0",
+    "appwrite": "^10.2.0",
     "react": "18.2.0",
     "react-native": "0.70.6",
     "react-native-bootsplash": "^4.4.0",

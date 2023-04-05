@@ -13,15 +13,13 @@ import Settings from "./app/screens/Settings";
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 import useColorScheme from "react-native/Libraries/Utilities/useColorScheme";
 import ItemOverview from "./app/screens/ItemOverview";
-import {saveData, getData, getItemData, saveItemData, clear, convertDataFormat} from "./app/handler/DataHandler";
+import {saveData, getData} from "./app/handler/DataHandler";
 import PagerView from "react-native-pager-view";
 import ToDoScreen from "./app/screens/ToDoScreen";
 import DoneScreen from "./app/screens/DoneScreen";
 import EditOverview from "./app/screens/EditOverview";
-import {onDisplayNotification} from "./app/handler/NotificationHandler";
-import notifee, {EventType} from "@notifee/react-native";
 import {isToDo} from "./app/handler/ItemHandler";
-import {version as app_version}  from './package.json';
+import {isLoggedIn} from "./app/handler/CloudHandler";
 
 
 const STYLES = ['default', 'dark-content', 'light-content'];
@@ -46,6 +44,8 @@ export default function App() {
   const [priority, setPriority] = useState(0);
   const [date, setDate] = useState(new Date(0));
   const [duration, setDuration] = useState(0);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [notificationTimestamp, setNotificationTimestamp] = useState(0);
   const pagerRef = React.useRef(PagerView);
 
   const changeMode = () => {
@@ -65,7 +65,6 @@ export default function App() {
   }
 
 
-
   const showCurrentItem = (item) => {
     setCurrentItem({key: item.key, name: item.name, priority: item.priority, isToDo: isToDo(item, todos)});
     setItemOverviewVisible(true);
@@ -74,10 +73,8 @@ export default function App() {
 
   useEffect(() => {
     const init = async () => {
-      if(app_version === "1.3.0"){
-        await convertDataFormat(setTodos, setDone, setDarkMode, setAmoled, setLanguage);
-      }
       getData(setTodos, setDone, setDarkMode, setAmoled, setLanguage);
+      setLoggedIn(isLoggedIn());
     }
     init().finally(async () => {
       await RNBootSplash.hide({fade: true});
@@ -86,41 +83,6 @@ export default function App() {
 
 
   useEffect(() => {}, [settingsVisible, itemOverviewVisible, isEditing]);
-
-  //Create BackHandler
-  useEffect(() => {
-    const backAction = () => {
-      console.log(settingsVisible + ' ' + isEditing + ' ' + itemOverviewVisible + ' ' + page)
-      if(settingsVisible) {
-        console.log('settingsVisible: ' + settingsVisible)
-        setSettingsVisible(false);
-        setValue(value + 1);
-        return true;
-      }else if(isEditing) {
-        console.log('isEditing: ' + isEditing)
-        setIsEditing(false);
-        setValue(value + 1);
-        return true;
-      }else if(itemOverviewVisible) {
-        console.log('itemOverviewVisible: ' + itemOverviewVisible)
-        setItemOverviewVisible(false);
-        setValue(value + 1);
-        return true;
-      }else if (!page) {
-        setPage(false)
-        pagerRef.current.setPage(0);
-        return true;
-      }
-      return false;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        backAction
-    );
-
-    return () => backHandler.remove();
-  }, []);
 
 
   useEffect(() => {
@@ -133,20 +95,10 @@ export default function App() {
     setTimeout(() => setStatusBarStyle('light-content'), 1);
   }, [darkMode, amoled]);
 
-  /*useEffect(() => {
-    todos.forEach((item) => {
-      if(new Date(item.date).getTime() !== 0) {
-        if (new Date(item.date).getTime() - item.duration < Date.now()) {
-          onDisplayNotification(item, language);
-        }
-      }
-    })
-  });*/
-
 
 
     return (
-      <View style={darkMode ? (amoled ? styles.containerAmoledMode : styles.containerDarkMode) : styles.containerLightMode}>
+      <View style={styles(darkMode, amoled).container}>
         <Header
             style={{flex: 1}}
             changeMode={changeMode}
@@ -177,6 +129,8 @@ export default function App() {
                 done={done}
                 setDone={setDone}
                 setTodos={setTodos}
+                setLoggedIn={setLoggedIn}
+                loggedIn={loggedIn}
                 style={{flex: 1}}
             />
             :
@@ -198,6 +152,7 @@ export default function App() {
                     <EditOverview
                         darkMode={darkMode}
                         language={language}
+                        isEditing={isEditing}
                         setIsEditing={setIsEditing}
                         item={undefined}
                         setItemOverviewVisible={setItemOverviewVisible}
@@ -210,11 +165,13 @@ export default function App() {
                         priority={priority}
                         date={date}
                         duration={duration}
+                        notificationTimestamp={notificationTimestamp}
                         setName={setName}
                         setDescription={setDescription}
                         setPriority={setPriority}
                         setDate={setDate}
                         setDuration={setDuration}
+                        setNotificationTimestamp={setNotificationTimestamp}
                     />
                     :
                     <View/>
@@ -238,6 +195,7 @@ export default function App() {
                     setIsEditing={setIsEditing}
                     name={name}
                     setName={setName}
+                    setValue={setValue}
                 />
             }
           </View>
@@ -265,25 +223,10 @@ export default function App() {
 //Styles
 const statusBarHeight = StatusBar.currentHeight;
 
-const styles = StyleSheet.create({
-  containerLightMode: {
+const styles = (darkMode, amoled) => StyleSheet.create({
+  container: {
     paddingTop: statusBarHeight,
     flex: 1,
-    backgroundColor: lightColors.background,
+    backgroundColor:  darkMode ? amoled ? darkColors.amoled : darkColors.background : lightColors.background,
   },
-  containerDarkMode: {
-    paddingTop: statusBarHeight,
-    flex: 1,
-    backgroundColor: darkColors.background,
-  },
-  containerAmoledMode: {
-    paddingTop: statusBarHeight,
-    flex: 1,
-    backgroundColor: darkColors.amoled,
-  },
-  modeChangeScreen:{
-    position: 'absolute',
-    flex: 5,
-    backgroundColor: lightColors.foreground,
-  }
 });
