@@ -5,7 +5,7 @@ import {getWords} from "./DataHandler";
 
 const client = new Client()
     .setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject('6420133f64d48d5a127b');
+    .setProject('');
 
 export const createAccount = async (email, password, name, language) => {
     const account = new Account(client);
