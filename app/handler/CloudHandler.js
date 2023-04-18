@@ -2,10 +2,11 @@ import React from "react";
 import {StyleSheet, ToastAndroid, View} from "react-native";
 import { Client, Account, ID } from 'appwrite';
 import {getWords} from "./DataHandler";
+import {ENDPOINT, PROJECT} from "@appwrite";
 
 const client = new Client()
-    .setEndpoint('https://cloud.appwrite.io/v1')
-    .setProject('6420133f64d48d5a127b');
+    .setEndpoint(ENDPOINT)
+    .setProject(PROJECT);
 
 export const createAccount = async (email, password, name, language) => {
     const account = new Account(client);
