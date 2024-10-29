@@ -1,5 +1,5 @@
 # ToDo
-Simple ToDo-App build with React Native. Only Android maintained.
+Simple ToDo-App build with React Native.
 
 ## App Features
 - **Languages:** German, English, French
